@@ -186,6 +186,7 @@
     .header-inner { flex-direction:column; align-items:flex-start; }
     .pick-slot { flex-direction:column; align-items:flex-start; }
   }
+  @keyframes dot-pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
 </style>
 </head>
 <body>
@@ -447,6 +448,18 @@
 </main>
 </div><!-- /app -->
 
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" style="position:fixed;inset:0;background:var(--navy);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--white);">MARCH MADNESS <span style="color:var(--orange)">SURVIVOR</span></div>
+  <div style="display:flex;gap:10px;align-items:center;margin:4px 0;">
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0s"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0.2s"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0.4s"></div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;font-size:0.82rem;color:var(--gray);text-transform:uppercase;">Connecting to database...</div>
+  <div id="fb-error" style="display:none;color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;letter-spacing:1px;max-width:320px;text-align:center;padding:12px 16px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:6px;margin-top:4px;"></div>
+</div>
+
 <!-- ══ PICKS MODAL ══ -->
 <div class="modal-overlay" id="picksModal">
   <div class="modal">
@@ -489,7 +502,7 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 // ══════════════════════════════════════════════════════════════════
 // 2025 NCAA TOURNAMENT DATA
 // ══════════════════════════════════════════════════════════════════
@@ -609,32 +622,86 @@ function getActualResult(team, round) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// STATE  (localStorage)
+// FIREBASE + FIRESTORE
 // ══════════════════════════════════════════════════════════════════
-const STORE_KEY = 'mmSurvivor2026_v1';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function loadState() {
-  try {
-    const s = localStorage.getItem(STORE_KEY);
-    if (s) return JSON.parse(s);
-  } catch(e) {}
-  // Default state with pre-seeded admin
-  return {
-    accounts: [
-      { id: 0, name: 'Admin', pin: '1234', role: 'admin' }
-    ],
-    players: [],   // pool players (linked to account id)
-    roundLocks: {}, // { "1": true, "2": false, ... }
-    nextId: 1
-  };
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyDoNpDL8_3GQaElCqqu96nLWzWwFnyQMcI",
+  authDomain: "az-survivor-pool.firebaseapp.com",
+  projectId: "az-survivor-pool",
+  storageBucket: "az-survivor-pool.firebasestorage.app",
+  messagingSenderId: "658267574579",
+  appId: "1:658267574579:web:7dcaca308ab785096b6e46"
+};
 
-function saveState() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
-}
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+const STATE_DOC = doc(db, 'pool', 'state');
 
-let state = loadState();
+const DEFAULT_STATE = {
+  accounts:   [{ id: 0, name: 'Admin', pin: '1234', role: 'admin' }],
+  players:    [],
+  roundLocks: {},
+  nextId:     1
+};
+
+// In-memory copy kept in sync by onSnapshot
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let currentUser = null; // { id, name, role, playerId }
+let _firestoreReady = false;
+
+// ── Initial load ────────────────────────────────────────────────
+async function initState() {
+  showLoadingOverlay(true);
+  try {
+    const snap = await getDoc(STATE_DOC);
+    if (snap.exists()) {
+      state = snap.data();
+    } else {
+      // First ever load — seed default state
+      await setDoc(STATE_DOC, DEFAULT_STATE);
+    }
+  } catch(e) {
+    console.error('Firestore init error:', e);
+    showFbError('Could not connect to database. Check your internet connection.');
+    return;
+  }
+  _firestoreReady = true;
+  showLoadingOverlay(false);
+
+  // Real-time listener — keeps all open tabs/devices in sync
+  onSnapshot(STATE_DOC, (snap) => {
+    if (!snap.exists()) return;
+    state = snap.data();
+    if (currentUser) renderAll();
+  }, err => {
+    console.error('Snapshot error:', err);
+  });
+}
+
+// ── Save to Firestore ───────────────────────────────────────────
+async function saveState() {
+  try {
+    await setDoc(STATE_DOC, state);
+  } catch(e) {
+    console.error('Save error:', e);
+    showFbError('Failed to save. Check your connection and try again.');
+  }
+}
+
+// ── Loading overlay helpers ─────────────────────────────────────
+function showLoadingOverlay(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+function showFbError(msg) {
+  showLoadingOverlay(false);
+  const el = document.getElementById('fb-error');
+  el.textContent = msg;
+  el.style.display = '';
+}
 
 function getAccount(name) {
   return state.accounts.find(a => a.name.toLowerCase() === name.toLowerCase());
@@ -659,14 +726,14 @@ function clearPins(containerId) {
   if (el) el.value = '';
 }
 
-function switchLoginTab(tab) {
+window.switchLoginTab = function switchLoginTab(tab) {
   document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('login-panel').style.display   = tab === 'login'    ? '' : 'none';
   document.getElementById('register-panel').style.display = tab === 'register' ? '' : 'none';
 }
 
-function doLogin() {
+window.doLogin = function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   const pin  = pinFromInputs('login-pin-input');
   const errEl = document.getElementById('login-error');
@@ -681,7 +748,7 @@ function doLogin() {
   loginAs(acct);
 }
 
-function doRegister() {
+window.doRegister = function doRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const pin  = pinFromInputs('reg-pin-input');
   const errEl = document.getElementById('reg-error');
@@ -725,7 +792,7 @@ function loginAs(acct) {
   showTab('standings');
 }
 
-function doLogout() {
+window.doLogout = function doLogout() {
   currentUser = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').classList.remove('hidden');
@@ -853,19 +920,8 @@ function buildTeamDropdown(idx, round, used) {
 // ══════════════════════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════════════════════
-function showTab(name, ev) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  const el = document.getElementById('tab-' + name);
-  if (el) el.classList.add('active');
-  if (ev && ev.target) ev.target.classList.add('active');
-  if (name === 'standings') renderStandings();
-  if (name === 'picks') renderMyPicks();
-  if (name === 'allpicks') renderAllPicks();
-  if (name === 'admin') renderAdmin();
-}
 
-function showTab(name, ev) {
+window.showTab = function showTab(name, ev) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
@@ -879,8 +935,8 @@ function showTab(name, ev) {
 // ══════════════════════════════════════════════════════════════════
 // MODAL
 // ══════════════════════════════════════════════════════════════════
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
+window.closeModal = function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+window.openModal = function openModal(id)  { document.getElementById(id).classList.add('open'); }
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
 });
@@ -888,13 +944,13 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 // ══════════════════════════════════════════════════════════════════
 // MY PICKS MODAL
 // ══════════════════════════════════════════════════════════════════
-function openPicksModal() {
+window.openPicksModal = function openPicksModal() {
   if (!currentUser || !currentUser.playerId) return;
   updatePicksModalInputs();
   openModal('picksModal');
 }
 
-function updatePicksModalInputs() {
+window.updatePicksModalInputs = function updatePicksModalInputs() {
   const round = parseInt(document.getElementById('picks-modal-round').value);
   const alertEl = document.getElementById('picks-modal-alert');
   const submitBtn = document.getElementById('picks-modal-submit');
@@ -951,7 +1007,7 @@ function updatePicksModalInputs() {
   document.getElementById('picks-modal-inputs').innerHTML = info + inputs;
 }
 
-function submitMyPicks() {
+window.submitMyPicks = function submitMyPicks() {
   const round = parseInt(document.getElementById('picks-modal-round').value);
   const player = getPlayer(currentUser.playerId);
   const alertEl = document.getElementById('picks-modal-alert');
@@ -1064,7 +1120,7 @@ function renderMyPicks() {
 // ══════════════════════════════════════════════════════════════════
 // RENDER — ALL PICKS
 // ══════════════════════════════════════════════════════════════════
-function renderAllPicks() {
+window.renderAllPicks = function renderAllPicks() {
   const round = parseInt(document.getElementById('round-selector').value);
   const locked = isRoundLocked(round);
   const canSeeAll = isAdmin() || locked;
@@ -1177,7 +1233,7 @@ function renderAdmin() {
   updateAdminPickInputs();
 }
 
-function toggleRoundLock(round, lock) {
+window.toggleRoundLock = function toggleRoundLock(round, lock) {
   state.roundLocks[round] = lock;
   if (lock) applyLockPenalties(round);
   saveState();
@@ -1220,7 +1276,7 @@ function getNextOpenRound() {
   return null;
 }
 
-function adminRestorePlayer(id) {
+window.adminRestorePlayer = function adminRestorePlayer(id) {
   const p = getPlayer(id);
   if (!p) return;
 
@@ -1237,7 +1293,7 @@ function adminRestorePlayer(id) {
   renderAll();
 }
 
-function adminRemovePlayer(id) {
+window.adminRemovePlayer = function adminRemovePlayer(id) {
   if (!confirm('Remove this player from the pool?')) return;
   // Remove player and their account
   const player = getPlayer(id);
@@ -1251,7 +1307,7 @@ function adminRemovePlayer(id) {
 // adminAddPlayer removed — users self-register
 
 // Admin pick override
-function updateAdminPickInputs() {
+window.updateAdminPickInputs = function updateAdminPickInputs() {
   const playerId = parseInt(document.getElementById('admin-pick-player').value);
   const round    = parseInt(document.getElementById('admin-pick-round').value);
   const player   = getPlayer(playerId);
@@ -1276,7 +1332,7 @@ function updateAdminPickInputs() {
   container.innerHTML = html;
 }
 
-function adminSubmitPicks() {
+window.adminSubmitPicks = function adminSubmitPicks() {
   const playerId = parseInt(document.getElementById('admin-pick-player').value);
   const round    = parseInt(document.getElementById('admin-pick-round').value);
   const player   = getPlayer(playerId);
@@ -1302,7 +1358,7 @@ function adminSubmitPicks() {
 // ══════════════════════════════════════════════════════════════════
 // RESULT MODAL (admin only)
 // ══════════════════════════════════════════════════════════════════
-function openResultModal(playerId, round, idx, teamName) {
+window.openResultModal = function openResultModal(playerId, round, idx, teamName) {
   document.getElementById('result-player-id').value = playerId;
   document.getElementById('result-round').value = round;
   document.getElementById('result-pick-idx').value = idx;
@@ -1310,7 +1366,7 @@ function openResultModal(playerId, round, idx, teamName) {
   openModal('resultModal');
 }
 
-function markResult(result) {
+window.markResult = function markResult(result) {
   const playerId = parseInt(document.getElementById('result-player-id').value);
   const round    = parseInt(document.getElementById('result-round').value);
   const idx      = parseInt(document.getElementById('result-pick-idx').value);
@@ -1343,6 +1399,9 @@ document.getElementById('reg-name').addEventListener('keydown',   e => { if (e.k
 document.getElementById('admin-pick-player')?.addEventListener('change', updateAdminPickInputs);
 document.getElementById('admin-pick-round')?.addEventListener('change', updateAdminPickInputs);
 document.getElementById('picks-modal-round')?.addEventListener('change', updatePicksModalInputs);
+
+// ── Start app ──
+initState();
 </script>
 </body>
 </html>
