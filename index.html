@@ -620,6 +620,37 @@ const TOURNAMENT = {
     {home:"TBD",away:"TBD",winner:null},
   ]}
 }
+// Get all teams playing in a given round, excluding teams eliminated in prior rounds
+function getTeamsForRound(round) {
+  const data = TOURNAMENT[round];
+  if (!data) return [];
+  const eliminated = new Set();
+  for (let r = 1; r < round; r++) {
+    const rData = TOURNAMENT[r];
+    if (!rData) continue;
+    rData.games.forEach(g => {
+      if (!g.winner) return;
+      if (g.winner === g.home) eliminated.add(g.away);
+      else eliminated.add(g.home);
+    });
+  }
+  const teams = new Set();
+  data.games.forEach(g => {
+    if (g.home !== 'TBD' && !eliminated.has(g.home)) teams.add(g.home);
+    if (g.away !== 'TBD' && !eliminated.has(g.away)) teams.add(g.away);
+  });
+  return [...teams].sort();
+}
+
+// Get actual win/loss result for a team in a round from TOURNAMENT data
+function getActualResult(team, round) {
+  const data = TOURNAMENT[round];
+  if (!data) return null;
+  const game = data.games.find(g => g.home === team || g.away === team);
+  if (!game || !game.winner) return 'pending';
+  return game.winner === team ? 'win' : 'loss';
+}
+
 function normalizeESPNName(raw) {
   return ESPN_NAME_MAP[raw] || raw;
 }
