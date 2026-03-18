@@ -148,9 +148,9 @@ label { font-family:‘Barlow Condensed’,sans-serif; font-size:0.78rem; letter
 .pick-chip.hidden-pick { background:rgba(255,255,255,0.05); color:var(–gray); font-style:italic; }
 
 /* MODAL */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:150; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 .modal-overlay.open { opacity:1; pointer-events:all; }
-.modal { background:var(–navy2); border:1px solid rgba(244,123,32,0.3); border-radius:8px; padding:26px; max-width:520px; width:100%; transform:translateY(20px); transition:transform 0.2s; max-height:90vh; overflow-y:auto; }
+.modal { background:#0f1e38; border:1px solid rgba(244,123,32,0.4); border-radius:8px; padding:26px; max-width:520px; width:100%; transform:translateY(20px); transition:transform 0.2s; max-height:85vh; overflow-y:auto; position:relative; z-index:501; box-shadow:0 25px 60px rgba(0,0,0,0.8); }
 .modal-overlay.open .modal { transform:translateY(0); }
 .modal h2 { font-family:‘Bebas Neue’,sans-serif; font-size:1.7rem; letter-spacing:2px; color:var(–orange); margin-bottom:18px; }
 
