@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>March Madness Survivor Pool</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628; --navy2: #0f1e38; --orange: #f47b20; --orange2: #ff9a45;
+    --gold: #ffd700; --red: #e63946; --green: #2dc653; --gray: #8a9bb5;
+    --light: #cdd8ec; --white: #f0f4ff; --purple: #7c3aed;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--navy); color:var(--white); font-family:'Barlow',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(244,123,32,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(10,22,40,0.9) 0%, transparent 60%),
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.01) 40px, rgba(255,255,255,0.01) 41px);
+  }
+  .container { max-width:1100px; margin:0 auto; padding:0 20px; position:relative; z-index:1; }
+
+  /* LOGIN SCREEN */
+  #login-screen {
+    position:fixed; inset:0; background:var(--navy); z-index:200;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:20px; overflow-y:auto;
+  }
+  /* Vertically center when there's enough room, scroll when there isn't */
+  #login-screen::before {
+    content:''; display:block; flex:1; min-height:20px; max-height:60px;
+  }
+  #login-screen.hidden { display:none; }
+  .login-box {
+    background:var(--navy2); border:1px solid rgba(244,123,32,0.3); border-radius:12px;
+    padding:clamp(20px, 5vw, 36px); max-width:400px; width:100%; text-align:center;
+    margin-bottom:20px;
+  }
+  .login-box h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.7rem,6vw,2.4rem); letter-spacing:3px; margin-bottom:4px; }
+  .login-box h1 span { color:var(--orange); }
+  .login-box > p { color:var(--gray); font-family:'Barlow Condensed',sans-serif; letter-spacing:2px; font-size:0.82rem; text-transform:uppercase; margin-bottom:20px; }
+  .login-tabs { display:flex; gap:0; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1); border-radius:5px; overflow:hidden; }
+  .login-tab { flex:1; padding:9px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; font-size:0.85rem; font-weight:700; text-transform:uppercase; background:transparent; color:var(--gray); border:none; cursor:pointer; transition:all 0.2s; }
+  .login-tab.active { background:var(--orange); color:var(--navy); }
+  .pin-input { margin:10px 0; }
+  .pin-single {
+    width:100%; padding:12px 16px;
+    background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.15);
+    border-radius:6px; color:var(--white); font-size:1.6rem;
+    font-family:'Bebas Neue',sans-serif; text-align:center; letter-spacing:0.4em;
+    /* Offset right padding to compensate for letter-spacing on last char */
+    padding-right:calc(16px + 0.4em);
+    transition:border 0.2s; caret-color:var(--orange);
+    min-width:0; box-sizing:border-box;
+  }
+  .pin-single:focus { outline:none; border-color:var(--orange); }
+  .pin-single::placeholder { letter-spacing:0.3em; font-size:1.2rem; color:rgba(255,255,255,0.2); }
+
+  /* HEADER */
+  header { background:linear-gradient(135deg,var(--navy2) 0%,#0d1b35 100%); border-bottom:3px solid var(--orange); position:relative; overflow:hidden; }
+  header::after { content:''; position:absolute; top:0; right:0; width:400px; height:100%; background:linear-gradient(to left,rgba(244,123,32,0.07),transparent); pointer-events:none; }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; gap:16px; flex-wrap:wrap; }
+  .logo-block h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.6rem,4vw,2.6rem); letter-spacing:3px; line-height:1; }
+  .logo-block h1 span { color:var(--orange); }
+  .logo-block p { font-family:'Barlow Condensed',sans-serif; font-size:0.78rem; letter-spacing:4px; text-transform:uppercase; color:var(--gray); margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .user-pill {
+    display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:6px 14px;
+    font-family:'Barlow Condensed',sans-serif; font-size:0.82rem; letter-spacing:1px;
+  }
+  .user-pill .role-badge { font-size:0.68rem; letter-spacing:1px; padding:2px 7px; border-radius:10px; font-weight:700; }
+  .role-admin { background:rgba(124,58,237,0.25); color:#a78bfa; border:1px solid rgba(124,58,237,0.4); }
+  .role-user  { background:rgba(244,123,32,0.2); color:var(--orange); border:1px solid rgba(244,123,32,0.3); }
+
+  /* TABS */
+  .tabs { display:flex; background:var(--navy2); border-bottom:2px solid rgba(255,255,255,0.07); overflow-x:auto; }
+  .tab { font-family:'Barlow Condensed',sans-serif; font-size:0.88rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; padding:13px 22px; cursor:pointer; color:var(--gray); border-bottom:3px solid transparent; transition:all 0.2s; white-space:nowrap; background:none; border-left:none; border-right:none; border-top:none; }
+  .tab:hover { color:var(--orange2); }
+  .tab.active { color:var(--orange); border-bottom-color:var(--orange); }
+  .tab.admin-only { color:rgba(167,139,250,0.6); }
+  .tab.admin-only:hover { color:#a78bfa; }
+  .tab.admin-only.active { color:#a78bfa; border-bottom-color:#a78bfa; }
+
+  /* LOCK BANNER */
+  .lock-banner {
+    background:rgba(230,57,70,0.12); border-bottom:1px solid rgba(230,57,70,0.3);
+    padding:8px 24px; font-family:'Barlow Condensed',sans-serif; font-size:0.82rem;
+    letter-spacing:1px; color:var(--red); text-align:center; display:none;
+  }
+  .lock-banner.show { display:block; }
+
+  main { padding:28px 0 60px; }
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* BUTTONS */
+  .btn { font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:10px 22px; border:none; cursor:pointer; font-size:0.88rem; transition:all 0.18s; border-radius:3px; }
+  .btn-primary { background:var(--orange); color:var(--navy); }
+  .btn-primary:hover { background:var(--orange2); transform:translateY(-1px); }
+  .btn-secondary { background:transparent; color:var(--orange); border:1.5px solid var(--orange); }
+  .btn-secondary:hover { background:rgba(244,123,32,0.1); }
+  .btn-danger { background:var(--red); color:white; }
+  .btn-danger:hover { background:#c0303a; }
+  .btn-purple { background:var(--purple); color:white; }
+  .btn-purple:hover { background:#6d28d9; }
+  .btn-green { background:var(--green); color:var(--navy); }
+  .btn-green:hover { background:#25b348; }
+  .btn-small { padding:5px 12px; font-size:0.75rem; }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none !important; }
+
+  /* CARDS */
+  .card { background:var(--navy2); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:22px; margin-bottom:18px; }
+  .card-title { font-family:'Bebas Neue',sans-serif; font-size:1.35rem; letter-spacing:2px; color:var(--orange); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+
+  /* FORMS */
+  .form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  input[type="text"], input[type="number"], input[type="password"], select {
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:var(--white);
+    padding:9px 14px; border-radius:4px; font-family:'Barlow',sans-serif; font-size:0.9rem; transition:border 0.2s; flex:1; min-width:160px;
+  }
+  input:focus, select:focus { outline:none; border-color:var(--orange); }
+  select option { background:var(--navy2); }
+  label { font-family:'Barlow Condensed',sans-serif; font-size:0.78rem; letter-spacing:2px; text-transform:uppercase; color:var(--gray); display:block; margin-bottom:5px; }
+  .form-group { flex:1; min-width:160px; }
+
+  /* PLAYER CARD */
+  .player-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:13px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:border-color 0.2s; }
+  .player-card:hover { border-color:rgba(244,123,32,0.3); }
+  .player-card.eliminated { opacity:0.5; border-color:rgba(230,57,70,0.2); }
+  .player-name { font-family:'Barlow Condensed',sans-serif; font-size:1.05rem; font-weight:700; letter-spacing:1px; }
+  .player-status { font-size:0.72rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:1.5px; text-transform:uppercase; padding:3px 10px; border-radius:20px; font-weight:600; }
+  .status-alive   { background:rgba(45,198,83,0.15);  color:var(--green); border:1px solid rgba(45,198,83,0.3); }
+  .status-eliminated { background:rgba(230,57,70,0.15); color:var(--red);   border:1px solid rgba(230,57,70,0.3); }
+  .status-winner  { background:rgba(255,215,0,0.15);  color:var(--gold);  border:1px solid rgba(255,215,0,0.3); }
+
+  /* STANDINGS */
+  .standings-table { width:100%; border-collapse:collapse; }
+  .standings-table th { font-family:'Barlow Condensed',sans-serif; font-size:0.76rem; letter-spacing:2px; text-transform:uppercase; color:var(--gray); text-align:left; padding:8px 13px; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .standings-table td { padding:11px 13px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.88rem; }
+  .standings-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .pick-chip { display:inline-block; background:rgba(255,255,255,0.07); border-radius:3px; padding:2px 7px; font-size:0.75rem; margin:2px; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.5px; }
+  .pick-chip.win   { background:rgba(45,198,83,0.15); color:var(--green); }
+  .pick-chip.loss  { background:rgba(230,57,70,0.15); color:var(--red); text-decoration:line-through; }
+  .pick-chip.pending { background:rgba(255,215,0,0.1); color:var(--gold); }
+  .pick-chip.hidden-pick { background:rgba(255,255,255,0.05); color:var(--gray); font-style:italic; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:150; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--navy2); border:1px solid rgba(244,123,32,0.3); border-radius:8px; padding:26px; max-width:520px; width:100%; transform:translateY(20px); transition:transform 0.2s; max-height:90vh; overflow-y:auto; }
+  .modal-overlay.open .modal { transform:translateY(0); }
+  .modal h2 { font-family:'Bebas Neue',sans-serif; font-size:1.7rem; letter-spacing:2px; color:var(--orange); margin-bottom:18px; }
+
+  /* ALERTS */
+  .alert { padding:11px 15px; border-radius:4px; margin-bottom:14px; font-size:0.86rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.5px; line-height:1.5; }
+  .alert-info    { background:rgba(244,123,32,0.1); border:1px solid rgba(244,123,32,0.25); color:var(--orange2); }
+  .alert-success { background:rgba(45,198,83,0.1);  border:1px solid rgba(45,198,83,0.25);  color:var(--green); }
+  .alert-danger  { background:rgba(230,57,70,0.1);  border:1px solid rgba(230,57,70,0.25);  color:var(--red); }
+  .alert-purple  { background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3);  color:#a78bfa; }
+
+  /* MISC */
+  .section-label { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:3px; color:var(--gray); text-transform:uppercase; margin-bottom:4px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media(max-width:700px) { .two-col { grid-template-columns:1fr; } }
+  .rules-list { list-style:none; display:grid; gap:11px; }
+  .rules-list li { padding:13px 16px; background:rgba(255,255,255,0.03); border-left:3px solid var(--orange); border-radius:0 4px 4px 0; font-size:0.88rem; line-height:1.6; }
+  .rules-list li strong { font-family:'Barlow Condensed',sans-serif; color:var(--orange2); letter-spacing:1px; font-size:0.82rem; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .empty-state { text-align:center; padding:50px 20px; color:var(--gray); }
+  .empty-state .icon { font-size:3rem; margin-bottom:12px; }
+  .empty-state p { font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--navy); }
+  ::-webkit-scrollbar-thumb { background:rgba(244,123,32,0.4); border-radius:3px; }
+
+  /* LOCK INDICATOR */
+  .round-lock-badge { font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; letter-spacing:1.5px; text-transform:uppercase; padding:3px 10px; border-radius:20px; font-weight:600; display:inline-flex; align-items:center; gap:5px; }
+  .lock-open   { background:rgba(45,198,83,0.15);  color:var(--green); border:1px solid rgba(45,198,83,0.3); }
+  .lock-closed { background:rgba(230,57,70,0.15);  color:var(--red);   border:1px solid rgba(230,57,70,0.3); }
+
+  /* ADMIN PANEL */
+  .admin-section-header { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:2px; color:#a78bfa; margin-bottom:10px; }
+
+  @media(max-width:600px) {
+    .header-inner { flex-direction:column; align-items:flex-start; }
+    .pick-slot { flex-direction:column; align-items:flex-start; }
+  }
+  @keyframes dot-pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>MARCH MADNESS <span>SURVIVOR</span></h1>
+    <p>2026 Pool Management</p>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('login')">Sign In</button>
+      <button class="login-tab" onclick="switchLoginTab('register')">Register</button>
+    </div>
+    <div id="login-panel">
+      <div class="form-group" style="margin-bottom:14px; text-align:left;">
+        <label>Your Name</label>
+        <input type="text" id="login-name" placeholder="Enter your name..." autocomplete="off" />
+      </div>
+      <div class="form-group" style="margin-bottom:20px; text-align:left;">
+        <label>4-Digit PIN</label>
+        <div class="pin-input" id="login-pin-input">
+          <input class="pin-single" id="login-pin" maxlength="4" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off" />
+        </div>
+      </div>
+      <div id="login-error" class="alert alert-danger" style="display:none;"></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="doLogin()">Sign In</button>
+    </div>
+    <div id="register-panel" style="display:none;">
+      <div class="form-group" style="margin-bottom:14px; text-align:left;">
+        <label>Your Name</label>
+        <input type="text" id="reg-name" placeholder="Enter your name..." autocomplete="off" />
+      </div>
+      <div class="form-group" style="margin-bottom:6px; text-align:left;">
+        <label>Choose a 4-Digit PIN</label>
+        <div class="pin-input" id="reg-pin-input">
+          <input class="pin-single" id="reg-pin" maxlength="4" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off" />
+        </div>
+      </div>
+      <div id="reg-error" class="alert alert-danger" style="display:none; margin-top:10px;"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="doRegister()">Create Account</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+
+<header>
+  <div class="header-inner container">
+    <div class="logo-block">
+      <h1>MARCH MADNESS <span>SURVIVOR</span></h1>
+      <p>2026 Tournament Pool</p>
+    </div>
+    <div class="header-right">
+      <div class="user-pill">
+        <span id="header-username">—</span>
+        <span id="header-role-badge" class="role-badge role-user">User</span>
+      </div>
+      <button class="btn btn-small btn-secondary" onclick="doLogout()">Logout</button>
+      <button class="btn btn-small btn-primary" onclick="openPicksModal()" id="submit-picks-btn">Submit Picks</button>
+    </div>
+  </div>
+  <div id="lock-banner" class="lock-banner">
+    🔒 Picks are locked for this round. Contact the admin if you have an issue.
+  </div>
+  <div class="tabs container" style="padding:0">
+    <button class="tab active" onclick="showTab('standings',event)">Standings</button>
+    <button class="tab" onclick="showTab('picks',event)">My Picks</button>
+    <button class="tab" id="tab-btn-allpicks" onclick="showTab('allpicks',event)">All Picks</button>
+    <button class="tab" onclick="showTab('rules',event)">Rules</button>
+    <button class="tab admin-only" id="tab-btn-admin" onclick="showTab('admin',event)" style="display:none;">⚙ Admin</button>
+  </div>
+</header>
+
+<main>
+<div class="container">
+
+<!-- STANDINGS -->
+<div id="tab-standings" class="section active">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <div class="section-label">Current</div>
+      <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;">Standings</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="background:var(--navy2); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:10px 16px; text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--orange)" id="alive-count">0</div>
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; letter-spacing:2px; color:var(--gray); text-transform:uppercase;">Alive</div>
+      </div>
+      <div style="background:var(--navy2); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:10px 16px; text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--red)" id="elim-count">0</div>
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; letter-spacing:2px; color:var(--gray); text-transform:uppercase;">Eliminated</div>
+      </div>
+    </div>
+  </div>
+  <div id="standings-body"><div class="empty-state"><div class="icon">🏀</div><p>No players yet.</p></div></div>
+</div>
+
+<!-- MY PICKS -->
+<div id="tab-picks" class="section">
+  <div style="margin-bottom:20px;">
+    <div class="section-label">Your</div>
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;">My Picks</div>
+  </div>
+  <div id="my-picks-body"><div class="empty-state"><div class="icon">📋</div><p>No picks submitted yet.</p></div></div>
+</div>
+
+<!-- ALL PICKS (visible to all after round locks, always to admin) -->
+<div id="tab-allpicks" class="section">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <div class="section-label">All Players</div>
+      <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;">Picks & Results</div>
+    </div>
+    <select id="round-selector" onchange="renderAllPicks()" style="min-width:200px; max-width:320px; flex:none;">
+      <option value="1">R1 — Thu Mar 19 (Round of 64)</option>
+      <option value="2">R2 — Fri Mar 20 (Round of 64)</option>
+      <option value="3">R3 — Sat Mar 21 (Round of 32)</option>
+      <option value="4">R4 — Sun Mar 22 (Round of 32)</option>
+      <option value="5">R5 — Thu Mar 27 (Sweet 16)</option>
+      <option value="6">R6 — Fri Mar 28 (Sweet 16)</option>
+      <option value="7">R7 — Sat Mar 29 (Elite 8)</option>
+      <option value="8">R8 — Sun Mar 30 (Elite 8)</option>
+      <option value="9">R9 — Sat Apr 5 (Final Four)</option>
+      <option value="10">R10 — Mon Apr 7 (Championship)</option>
+    </select>
+  </div>
+  <div id="all-picks-body"></div>
+</div>
+
+<!-- RULES TAB -->
+<div id="tab-rules" class="section">
+  <div style="margin-bottom:24px;">
+    <div class="section-label">How It Works</div>
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;">Pool Rules</div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px; border-color:rgba(244,123,32,0.3);">
+    <div class="card-title">📋 Core Rules</div>
+    <ul class="rules-list">
+      <li><strong>Pick to Win Outright</strong>All picks are based on the team winning their game outright — not against the spread.</li>
+      <li><strong>No Repeats</strong>Once you pick a team, you cannot pick them again for the rest of the tournament. Used teams are removed from your selection list automatically.</li>
+      <li><strong>Only Active Teams</strong>Teams that have been eliminated from the tournament are removed from the pick list automatically after each round.</li>
+      <li><strong>Picks Lock at First Tip-Off</strong>Picks lock automatically when the first game of each round day begins. Once locked, no new picks can be submitted. Missing picks when the round locks are recorded as automatic losses.</li>
+      <li><strong>Any Loss = Eliminated</strong>Any single incorrect pick in any round eliminates you immediately.</li>
+      <li><strong>Admin Restore (R1–R4 only)</strong>Admin can restore an eliminated player, but only if they were eliminated in Rounds 1–4. Eliminations after Round 4 are permanent.</li>
+      <li><strong>Re-Entry Penalty</strong>Restored players must pick extra teams — <strong>4 teams</strong> if eliminated in R1/R2, or <strong>5 teams</strong> if eliminated in R3/R4. Go perfect in the penalty round and you return to normal pick counts the following round.</li>
+      <li><strong>Winner Take All</strong>Last survivor wins. Multiple survivors may agree to split the prize.</li>
+    </ul>
+  </div>
+
+  <div class="two-col" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="card-title">🗓️ R1 &amp; R2 — Entry Rounds</div>
+      <ul class="rules-list">
+        <li><strong>Round 1 — Thu Mar 19</strong>Every player picks <em>2 teams</em>. Any loss = eliminated. Admin can restore you for R2 with a penalty.</li>
+        <li><strong>Round 2 — Fri Mar 20</strong>
+          ✅ Perfect R1 → pick <strong>2 teams</strong>.<br><br>
+          🔄 Restored after R1 loss → pick <strong>4 teams</strong> (penalty). Go clean = back to normal next round. Any loss = eliminated again.
+        </li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ R3+ — Carry-Forward Rule</div>
+      <ul class="rules-list">
+        <li><strong>Perfect last round?</strong>Pick just <strong>1 team</strong> next round.</li>
+        <li><strong>Any loss last round?</strong>Required picks <strong>double</strong> — previous round count × 2.<br><br>Examples: 1→2 picks, 2→4 picks, 4→8 picks.</li>
+        <li><strong>Any loss in any round = eliminated immediately.</strong>Admin restore available only up to Round 4.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px; border-color:rgba(255,215,0,0.2);">
+    <div class="card-title" style="color:var(--gold);">📖 Worked Example</div>
+    <div style="overflow-x:auto;">
+      <table class="standings-table">
+        <thead><tr><th>Round</th><th>Date</th><th>Stage</th><th style="color:var(--green)">Player A — Clean</th><th style="color:var(--orange)">Player B — Eliminated &amp; Restored R1</th></tr></thead>
+        <tbody>
+          <tr><td><strong>R1</strong></td><td>Thu Mar 19</td><td>Round of 64</td><td style="color:var(--green)">2 picks → ✅ both win</td><td>2 picks → ❌ loss → <span style="color:var(--red)">ELIMINATED</span></td></tr>
+          <tr><td><strong>R2</strong></td><td>Fri Mar 20</td><td>Round of 64</td><td style="color:var(--green)">2 picks → ✅ both win</td><td style="color:var(--orange)">Admin restores → 4 picks penalty → ✅ all correct</td></tr>
+          <tr><td><strong>R3</strong></td><td>Sat Mar 21</td><td>Round of 32</td><td style="color:var(--green)">1 pick → ✅ win</td><td style="color:var(--green)">Penalty cleared → 1 pick → ✅ win</td></tr>
+          <tr><td><strong>R4</strong></td><td>Sun Mar 22</td><td>Round of 32</td><td style="color:var(--green)">1 pick → ✅ win</td><td>1 pick → ❌ loss → <span style="color:var(--red)">ELIMINATED</span> (admin can restore, 5 picks penalty)</td></tr>
+          <tr><td><strong>R5+</strong></td><td>Mar 26 →</td><td>Sweet 16 →</td><td style="color:var(--green)">1 pick/round — last survivor wins</td><td style="color:var(--red)">Elimination after R4 is permanent</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(45,198,83,0.2);">
+    <div class="card-title" style="color:var(--green);">⚡ Quick Reference</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px;">
+      <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--orange); margin-bottom:5px;">Perfect Round</div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">All picks win → next round requires only <strong>1 pick</strong></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--orange); margin-bottom:5px;">Any Loss</div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Eliminated immediately. Admin restore available R1–R4 only.</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--orange); margin-bottom:5px;">No Repeats</div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Teams you have picked are <strong>never available again</strong></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--red); margin-bottom:5px;">Pick Lock</div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Locks <strong>automatically</strong> at first tip-off each day. No picks submitted = auto-loss.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ADMIN TAB -->
+<div id="tab-admin" class="section">
+  <div style="margin-bottom:20px;">
+    <div class="section-label">Admin</div>
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px; color:#a78bfa;">Control Panel</div>
+  </div>
+
+  <!-- Round Locks -->
+  <div class="card" style="border-color:rgba(124,58,237,0.3); margin-bottom:18px;">
+    <div class="card-title" style="color:#a78bfa;">🔒 Round Lock Management</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div class="alert alert-purple" style="margin-bottom:0;flex:1;">Picks auto-lock when first game tips via ESPN. Manual lock/unlock available as override.</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="poll-status-badge" style="font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;letter-spacing:1px;color:var(--gray);"></span>
+        <button class="btn btn-small btn-purple" onclick="adminForcePoll()">🔄 Force Score Update</button>
+      </div>
+    </div>
+    <div id="round-locks-grid" style="display:grid; gap:8px;"></div>
+  </div>
+
+  <!-- Player Management -->
+  <div class="card" style="border-color:rgba(124,58,237,0.3); margin-bottom:18px;">
+    <div class="card-title" style="color:#a78bfa;">👥 Player Management</div>
+    <div id="admin-players-list" style="display:grid; gap:8px; margin-bottom:16px;"></div>
+    <p style="font-size:0.82rem; color:var(--gray); font-family:'Barlow Condensed',sans-serif; letter-spacing:0.5px; margin-top:4px;">Players self-register via the Sign In screen. Use Restore/Remove to manage their pool status.</p>
+  </div>
+
+  <!-- Admin Pick Override -->
+  <div class="card" style="border-color:rgba(124,58,237,0.3);">
+    <div class="card-title" style="color:#a78bfa;">✏️ Override Picks</div>
+    <div class="alert alert-purple" style="margin-bottom:14px;">Submit or modify picks on behalf of any player (ignores lock status).</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Player</label>
+        <select id="admin-pick-player"></select>
+      </div>
+      <div class="form-group">
+        <label>Round</label>
+        <select id="admin-pick-round" onchange="updateAdminPickInputs()">
+          <option value="1">R1 — Thu Mar 19</option><option value="2">R2 — Fri Mar 20</option>
+          <option value="3">R3 — Sat Mar 21</option><option value="4">R4 — Sun Mar 22</option>
+          <option value="5">R5 — Thu Mar 26</option><option value="6">R6 — Fri Mar 27</option>
+          <option value="7">R7 — Sat Mar 28</option><option value="8">R8 — Sun Mar 29</option>
+          <option value="9">R9 — Sat Apr 4</option><option value="10">R10 — Mon Apr 6</option>
+        </select>
+      </div>
+    </div>
+    <div id="admin-pick-inputs"></div>
+    <div id="admin-pick-alert"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn btn-purple" onclick="adminSubmitPicks()">Save Override</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+</main>
+</div><!-- /app -->
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" style="position:fixed;inset:0;background:var(--navy);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--white);">MARCH MADNESS <span style="color:var(--orange)">SURVIVOR</span></div>
+  <div style="display:flex;gap:10px;align-items:center;margin:4px 0;">
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0s"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0.2s"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dot-pulse 1.2s infinite 0.4s"></div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;font-size:0.82rem;color:var(--gray);text-transform:uppercase;">Connecting to database...</div>
+  <div id="fb-error" style="display:none;color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;letter-spacing:1px;max-width:320px;text-align:center;padding:12px 16px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:6px;margin-top:4px;"></div>
+</div>
+
+<!-- ══ PICKS MODAL ══ -->
+<div class="modal-overlay" id="picksModal">
+  <div class="modal">
+    <h2>Submit Picks</h2>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>Round</label>
+      <select id="picks-modal-round" onchange="updatePicksModalInputs()">
+        <option value="1">R1 — Thu Mar 20 (Round of 64)</option>
+        <option value="2">R2 — Fri Mar 21 (Round of 64)</option>
+        <option value="3">R3 — Sat Mar 22 (Round of 32)</option>
+        <option value="4">R4 — Sun Mar 23 (Round of 32)</option>
+        <option value="5">R5 — Thu Mar 27 (Sweet 16)</option>
+        <option value="6">R6 — Fri Mar 28 (Sweet 16)</option>
+        <option value="7">R7 — Sat Mar 29 (Elite 8)</option>
+        <option value="8">R8 — Sun Mar 30 (Elite 8)</option>
+        <option value="9">R9 — Sat Apr 5 (Final Four)</option>
+        <option value="10">R10 — Mon Apr 7 (Championship)</option>
+      </select>
+    </div>
+    <div id="picks-modal-inputs"></div>
+    <div id="picks-modal-alert"></div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
+      <button class="btn btn-secondary" onclick="closeModal('picksModal')">Cancel</button>
+      <button class="btn btn-primary" id="picks-modal-submit" onclick="submitMyPicks()">Save Picks</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULT MODAL (admin) ══ -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal">
+    <h2>Mark Result</h2>
+    <p style="color:var(--gray); margin-bottom:18px; font-size:0.9rem;">Did <strong id="result-team-name" style="color:var(--white);"></strong> win?</p>
+    <input type="hidden" id="result-player-id" /><input type="hidden" id="result-round" /><input type="hidden" id="result-pick-idx" />
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal('resultModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="markResult('loss')">❌ Loss</button>
+      <button class="btn btn-primary" onclick="markResult('win')">✅ Win</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ══════════════════════════════════════════════════════════════════
+// 2025 NCAA TOURNAMENT DATA
+// ══════════════════════════════════════════════════════════════════
+const TOURNAMENT = {
+  // 2026 NCAA Tournament — All times ET
+  // First Four: Howard beat UMBC 86-83, Texas beat NC State,
+  //             Prairie View beat Lehigh, Miami OH beat SMU
+
+  1: { label:"R1 — Thu Mar 19 (Round of 64)", games:[
+    // EAST — Greenville SC & Buffalo NY (verified from NCAA official scoreboard)
+    {home:"Ohio State",    away:"TCU",             winner:null}, // 12:15 PM CBS
+    {home:"Duke",          away:"Siena",           winner:null}, // 2:50 PM CBS
+    {home:"North Carolina",away:"VCU",             winner:null}, // 6:50 PM TNT
+    {home:"Illinois",      away:"Penn",            winner:null}, // 9:25 PM TNT
+    {home:"Louisville",    away:"South Florida",   winner:null}, // 1:30 PM TNT
+    {home:"Michigan St",   away:"North Dakota St", winner:null}, // 4:05 PM TNT
+    {home:"Michigan",      away:"Howard",          winner:null}, // 7:10 PM CBS
+    {home:"Georgia",       away:"Saint Louis",     winner:null}, // 9:45 PM CBS
+    // WEST — Portland OR
+    {home:"Wisconsin",     away:"High Point",      winner:null}, // 1:50 PM TBS
+    {home:"Arkansas",      away:"Hawaii",          winner:null}, // 4:25 PM TBS
+    {home:"BYU",           away:"Texas",           winner:null}, // 7:25 PM TBS
+    {home:"Gonzaga",       away:"Kennesaw State",  winner:null}, // 10:00 PM TBS
+    // SOUTH — Oklahoma City OK
+    {home:"Nebraska",      away:"Troy",            winner:null}, // 12:40 PM truTV
+    {home:"Vanderbilt",    away:"McNeese",         winner:null}, // 3:15 PM truTV
+    {home:"Saint Mary's",  away:"Texas A&M",       winner:null}, // 7:35 PM truTV
+    {home:"Houston",       away:"Idaho",           winner:null}, // 10:10 PM truTV
+  ]},
+
+  2: { label:"R2 — Fri Mar 20 (Round of 64)", games:[
+    // EAST — Philadelphia PA
+    {home:"St. John's",    away:"Northern Iowa",   winner:null},
+    {home:"Kansas",        away:"Cal Baptist",     winner:null},
+    {home:"UCLA",          away:"UCF",             winner:null},
+    {home:"UConn",         away:"Furman",          winner:null},
+    // WEST — San Diego CA
+    {home:"Arizona",       away:"LIU",             winner:null},
+    {home:"Villanova",     away:"Utah State",      winner:null},
+    {home:"Miami FL",      away:"Missouri",        winner:null},
+    {home:"Purdue",        away:"Queens",          winner:null},
+    // SOUTH — Tampa FL
+    {home:"Florida",       away:"Prairie View",    winner:null},
+    {home:"Clemson",       away:"Iowa",            winner:null},
+    // MIDWEST — St Louis MO & Philadelphia PA
+    {home:"Texas Tech",    away:"Akron",           winner:null},
+    {home:"Alabama",       away:"Hofstra",         winner:null},
+    {home:"Tennessee",     away:"Miami OH",        winner:null},
+    {home:"Virginia",      away:"Wright State",    winner:null},
+    {home:"Kentucky",      away:"Santa Clara",     winner:null},
+    {home:"Iowa State",    away:"Tennessee State", winner:null},
+  ]},
+
+  3: { label:"R3 — Sat Mar 21 (Round of 32)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  4: { label:"R4 — Sun Mar 22 (Round of 32)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  5: { label:"R5 — Thu Mar 26 (Sweet 16)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  6: { label:"R6 — Fri Mar 27 (Sweet 16)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  7: { label:"R7 — Sat Mar 28 (Elite 8)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  8: { label:"R8 — Sun Mar 29 (Elite 8)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  9: { label:"R9 — Sat Apr 4 (Final Four)", games:[
+    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+  ]},
+  10: { label:"R10 — Mon Apr 6 (Championship)", games:[
+    {home:"TBD",away:"TBD",winner:null},
+  ]}
+}
+function normalizeESPNName(raw) {
+  return ESPN_NAME_MAP[raw] || raw;
+}
+
+// Pool round → calendar date (ET)
+const ROUND_DATES = {
+  1:'2026-03-19', 2:'2026-03-20',
+  3:'2026-03-21', 4:'2026-03-22',
+  5:'2026-03-26', 6:'2026-03-27',
+  7:'2026-03-28', 8:'2026-03-29',
+  9:'2026-04-04', 10:'2026-04-06',
+};
+const DATE_TO_ROUND = Object.fromEntries(
+  Object.entries(ROUND_DATES).map(([r,d]) => [d, parseInt(r)])
+);
+
+let _scorePollTimer = null;
+
+function todayET() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+function getCurrentPoolRound() { return DATE_TO_ROUND[todayET()] || null; }
+function isTournamentDay()     { return getCurrentPoolRound() !== null; }
+
+async function fetchESPNScores() {
+  const url = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=64';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.events || [];
+  } catch(e) {
+    console.warn('[ESPN] fetch failed:', e);
+    return [];
+  }
+}
+
+async function processESPNScores(events) {
+  if (!events.length) return;
+  let anyChange = false;
+
+  for (const event of events) {
+    if (event.status?.type?.name !== 'STATUS_FINAL') continue;
+    const comps = event.competitions?.[0]?.competitors || [];
+    if (comps.length < 2) continue;
+    const winner = comps.find(c => c.winner);
+    const loser  = comps.find(c => !c.winner);
+    if (!winner || !loser) continue;
+
+    const winName  = normalizeESPNName(winner.team?.displayName || winner.team?.name || '');
+    const lossName = normalizeESPNName(loser.team?.displayName  || loser.team?.name  || '');
+
+    for (const [rStr, rData] of Object.entries(TOURNAMENT)) {
+      const round = parseInt(rStr);
+      for (const game of rData.games) {
+        if (game.winner) continue;
+        const hasWin  = game.home === winName  || game.away === winName;
+        const hasLoss = game.home === lossName || game.away === lossName;
+        if (!hasWin || !hasLoss) continue;
+
+        game.winner = winName;
+        anyChange = true;
+
+        for (const player of state.players) {
+          if (player.eliminated) continue;
+          const rPicks = (player.picks || {})[round] || [];
+          let changed = false;
+          for (const pick of rPicks) {
+            if (pick.result !== 'pending') continue;
+            if (pick.team === winName)  { pick.result = 'win';  changed = true; }
+            if (pick.team === lossName) { pick.result = 'loss'; changed = true; }
+          }
+          if (changed) {
+            checkElimination(player, round);
+            clearRestoredFlag(player);
+          }
+        }
+      }
+    }
+  }
+
+  if (anyChange) {
+    await saveState();
+    renderAll();
+    console.log('[ESPN] Results updated');
+  }
+}
+
+async function checkAutoLock() {
+  const round = getCurrentPoolRound();
+  if (!round || isRoundLocked(round)) return;
+  const events = await fetchESPNScores();
+  const anyStarted = events.some(e => {
+    const s = e.status?.type?.name;
+    return s === 'STATUS_IN_PROGRESS' || s === 'STATUS_FINAL' || s === 'STATUS_HALFTIME';
+  });
+  if (anyStarted) {
+    console.log(`[AutoLock] Locking round ${round}`);
+    state.roundLocks[round] = true;
+    applyLockPenalties(round);
+    await saveState();
+    renderAll();
+    updateLockBanner();
+  }
+}
+
+function startScorePolling() {
+  if (_scorePollTimer) return;
+  const tick = async () => {
+    if (!isTournamentDay()) return;
+    await checkAutoLock();
+    const events = await fetchESPNScores();
+    await processESPNScores(events);
+  };
+  tick();
+  _scorePollTimer = setInterval(tick, 60_000);
+  console.log('[ESPN] Polling started');
+}
+
+function getPollingStatus() {
+  if (!isTournamentDay()) return 'No games scheduled today';
+  return _scorePollTimer ? '\uD83D\uDFE2 Live — auto-updating every 60s' : '\u26AA Not polling';
+}
+
+window.adminForcePoll = async function() {
+  const btn = document.querySelector('[onclick="adminForcePoll()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '\u23F3 Polling...'; }
+  await checkAutoLock();
+  const events = await fetchESPNScores();
+  await processESPNScores(events);
+  if (btn) { btn.disabled = false; btn.textContent = '\uD83D\uDD04 Force Score Update'; }
+  renderAdmin();
+};
+
+
+// ══════════════════════════════════════════════════════════════════
+// FIREBASE + FIRESTORE
+// ══════════════════════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDoNpDL8_3GQaElCqqu96nLWzWwFnyQMcI",
+  authDomain: "az-survivor-pool.firebaseapp.com",
+  projectId: "az-survivor-pool",
+  storageBucket: "az-survivor-pool.firebasestorage.app",
+  messagingSenderId: "658267574579",
+  appId: "1:658267574579:web:7dcaca308ab785096b6e46"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getFirestore(fbApp);
+const STATE_DOC = doc(db, 'pool', 'state');
+
+const DEFAULT_STATE = {
+  accounts:   [{ id: 0, name: 'Admin', pin: '0331', role: 'admin' }],
+  players:    [],
+  roundLocks: {},
+  nextId:     1
+};
+
+// In-memory copy kept in sync by onSnapshot
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let currentUser = null; // { id, name, role, playerId }
+let _firestoreReady = false;
+
+// ── Initial load ────────────────────────────────────────────────
+async function initState() {
+  showLoadingOverlay(true);
+  try {
+    const snap = await getDoc(STATE_DOC);
+    if (snap.exists()) {
+      state = snap.data();
+    } else {
+      // First ever load — seed default state
+      await setDoc(STATE_DOC, DEFAULT_STATE);
+    }
+  } catch(e) {
+    console.error('Firestore init error:', e);
+    showFbError('Could not connect to database. Check your internet connection.');
+    return;
+  }
+  _firestoreReady = true;
+  showLoadingOverlay(false);
+
+  // Real-time listener — keeps all open tabs/devices in sync
+  onSnapshot(STATE_DOC, (snap) => {
+    if (!snap.exists()) return;
+    state = snap.data();
+    if (currentUser) renderAll();
+  }, err => {
+    console.error('Snapshot error:', err);
+  });
+
+  // Start ESPN score polling on tournament days
+  startScorePolling();
+}
+
+// ── Save to Firestore ───────────────────────────────────────────
+async function saveState() {
+  try {
+    await setDoc(STATE_DOC, state);
+  } catch(e) {
+    console.error('Save error:', e);
+    showFbError('Failed to save. Check your connection and try again.');
+  }
+}
+
+// ── Loading overlay helpers ─────────────────────────────────────
+function showLoadingOverlay(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+function showFbError(msg) {
+  showLoadingOverlay(false);
+  const el = document.getElementById('fb-error');
+  el.textContent = msg;
+  el.style.display = '';
+}
+
+function getAccount(name) {
+  return state.accounts.find(a => a.name.toLowerCase() === name.toLowerCase());
+}
+function getPlayerByAccountId(accountId) {
+  return state.players.find(p => p.accountId === accountId);
+}
+function getPlayer(id) { return state.players.find(p => p.id === id); }
+function isRoundLocked(round) { return !!state.roundLocks[round]; }
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
+// ══════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════
+function pinFromInputs(containerId) {
+  const el = document.querySelector(`#${containerId} .pin-single`);
+  return el ? el.value : '';
+}
+
+function clearPins(containerId) {
+  const el = document.querySelector(`#${containerId} .pin-single`);
+  if (el) el.value = '';
+}
+
+window.switchLoginTab = function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('login-panel').style.display   = tab === 'login'    ? '' : 'none';
+  document.getElementById('register-panel').style.display = tab === 'register' ? '' : 'none';
+}
+
+window.doLogin = function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pin  = pinFromInputs('login-pin-input');
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!name) { showLoginError('Please enter your name.'); return; }
+  if (pin.length !== 4) { showLoginError('Please enter your 4-digit PIN.'); return; }
+
+  const acct = getAccount(name);
+  if (!acct || acct.pin !== pin) { showLoginError('Name or PIN is incorrect.'); return; }
+
+  loginAs(acct);
+}
+
+window.doRegister = function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const pin  = pinFromInputs('reg-pin-input');
+  const errEl = document.getElementById('reg-error');
+  errEl.style.display = 'none';
+
+  if (!name) { showRegError('Please enter a name.'); return; }
+  if (name.toLowerCase() === 'admin') { showRegError('"Admin" is a reserved name.'); return; }
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) { showRegError('PIN must be exactly 4 digits.'); return; }
+  if (getAccount(name)) { showRegError('That name is already taken. Try signing in.'); return; }
+
+  // Create account + pool player
+  const acctId = state.nextId++;
+  state.accounts.push({ id: acctId, name, pin, role: 'user' });
+  const playerId = state.nextId++;
+  state.players.push({ id: playerId, accountId: acctId, name, picks: {}, eliminated: false });
+  saveState();
+
+  loginAs(state.accounts.find(a => a.id === acctId));
+}
+
+function loginAs(acct) {
+  const player = getPlayerByAccountId(acct.id);
+  currentUser = { id: acct.id, name: acct.name, role: acct.role, playerId: player ? player.id : null };
+
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display = '';
+  document.getElementById('header-username').textContent = acct.name;
+
+  const badge = document.getElementById('header-role-badge');
+  if (acct.role === 'admin') {
+    badge.textContent = 'Admin'; badge.className = 'role-badge role-admin';
+    document.getElementById('tab-btn-admin').style.display = '';
+    document.getElementById('submit-picks-btn').style.display = 'none';
+  } else {
+    badge.textContent = 'Player'; badge.className = 'role-badge role-user';
+    document.getElementById('tab-btn-admin').style.display = 'none';
+    document.getElementById('submit-picks-btn').style.display = '';
+  }
+
+  renderAll();
+  showTab('standings');
+}
+
+window.doLogout = function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-name').value = '';
+  clearPins('login-pin-input');
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('reg-name').value = '';
+  clearPins('reg-pin-input');
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = '';
+}
+function showRegError(msg) {
+  const el = document.getElementById('reg-error');
+  el.textContent = msg; el.style.display = '';
+}
+
+// PIN single-input enter key
+document.getElementById('login-pin').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('reg-pin').addEventListener('keydown',   e => { if (e.key === 'Enter') doRegister(); });
+
+// ══════════════════════════════════════════════════════════════════
+// PICKS LOGIC
+// ══════════════════════════════════════════════════════════════════
+function picksRequired(player, round) {
+  const picks = player.picks || {};
+
+  // ── RESTORED PLAYER PATH ────────────────────────────────────────
+  // If admin restored this player after elimination, apply special
+  // re-entry penalty rules until they have a clean round.
+  if (player.restoredAfterRound != null) {
+    const restoredRound = player.restoredAfterRound;
+    // The round immediately after restoration is the penalty round
+    const penaltyRound = restoredRound + 1;
+
+    if (round === penaltyRound) {
+      // Penalty pick count depends on which round they were eliminated in
+      return restoredRound <= 2 ? 4 : 5;
+    }
+
+    if (round > penaltyRound) {
+      // Check if they went clean in the penalty round
+      const penaltyPicks = picks[penaltyRound] || [];
+      const allPending = penaltyPicks.every(p => p.result === 'pending');
+      const wentClean  = penaltyPicks.length > 0 && !penaltyPicks.some(p => p.result === 'loss') && !allPending;
+
+      if (wentClean) {
+        // Fully recovered — fall through to normal logic below
+        // (clear the flag so we don't keep checking; handled after save)
+      } else if (penaltyPicks.some(p => p.result === 'loss')) {
+        // Lost again during penalty round — double the penalty count
+        return Math.max((penaltyPicks.length || 4) * 2, 2);
+      } else {
+        // No picks yet submitted for penalty round
+        return restoredRound <= 2 ? 4 : 5;
+      }
+    }
+  }
+
+  // ── NORMAL PATH ────────────────────────────────────────────────
+  if (round === 1) return 2;
+
+  if (round === 2) {
+    const r1 = picks[1] || [];
+    if (r1.some(p => p.result === 'loss')) return Math.max((r1.length || 2) * 2, 4);
+    return 2;
+  }
+
+  if (round === 3) {
+    const r2 = picks[2] || [];
+    if (r2.some(p => p.result === 'loss')) return Math.max((r2.length || 2) * 2, 2);
+    return 1;
+  }
+
+  const prev = picks[round - 1] || [];
+  if (prev.some(p => p.result === 'loss')) return Math.max((prev.length || 2) * 2, 2);
+  return 1;
+}
+
+function getUsedTeams(player) {
+  const used = new Set();
+  Object.values(player.picks || {}).forEach(rp => rp.forEach(p => { if (p.team) used.add(p.team); }));
+  return used;
+}
+
+function checkElimination(player, round) {
+  // Any loss in any round eliminates the player immediately
+  const picks = (player.picks || {})[round] || [];
+  if (picks.some(p => p.result === 'loss')) {
+    player.eliminated = true;
+    player.eliminatedInRound = round;
+  }
+}
+
+function clearRestoredFlag(player) {
+  // Once player completes their penalty round cleanly, remove the flag
+  if (player.restoredAfterRound == null) return;
+  const penaltyRound = player.restoredAfterRound + 1;
+  const penaltyPicks = (player.picks || {})[penaltyRound] || [];
+  const wentClean = penaltyPicks.length > 0 && !penaltyPicks.some(p => p.result === 'loss')
+                    && !penaltyPicks.every(p => p.result === 'pending');
+  if (wentClean) {
+    delete player.restoredAfterRound;
+    delete player.eliminatedInRound;
+  }
+}
+
+function applyAutoResults(picks, round) {
+  return picks.map(p => ({ ...p, result: getActualResult(p.team, round) || 'pending' }));
+}
+
+function buildTeamDropdown(idx, round, used) {
+  const available = getTeamsForRound(round).filter(t => !used.has(t));
+  return `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+    <label style="min-width:64px; margin-bottom:0;">Pick ${idx+1}</label>
+    <select class="pick-select" style="flex:1; min-width:180px;">
+      <option value="">— Select team —</option>
+      ${available.map(t => `<option value="${t}">${t}</option>`).join('')}
+    </select>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════
+
+window.showTab = function showTab(name, ev) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+  if (name === 'standings') renderStandings();
+  if (name === 'picks') renderMyPicks();
+  if (name === 'allpicks') renderAllPicks();
+  if (name === 'admin') renderAdmin();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════════════
+window.closeModal = function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+window.openModal = function openModal(id)  { document.getElementById(id).classList.add('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+
+// ══════════════════════════════════════════════════════════════════
+// MY PICKS MODAL
+// ══════════════════════════════════════════════════════════════════
+window.openPicksModal = function openPicksModal() {
+  if (!currentUser || !currentUser.playerId) return;
+  updatePicksModalInputs();
+  openModal('picksModal');
+}
+
+window.updatePicksModalInputs = function updatePicksModalInputs() {
+  const round = parseInt(document.getElementById('picks-modal-round').value);
+  const alertEl = document.getElementById('picks-modal-alert');
+  const submitBtn = document.getElementById('picks-modal-submit');
+  alertEl.innerHTML = '';
+
+  const player = getPlayer(currentUser.playerId);
+  if (!player) return;
+
+  const locked = isRoundLocked(round);
+  submitBtn.disabled = locked;
+
+  if (locked) {
+    alertEl.innerHTML = '<div class="alert alert-danger">🔒 This round is locked. No more picks can be submitted.</div>';
+    document.getElementById('picks-modal-inputs').innerHTML = '';
+    return;
+  }
+
+  if (player.eliminated) {
+    alertEl.innerHTML = '<div class="alert alert-danger">You have been eliminated from the pool.</div>';
+    document.getElementById('picks-modal-inputs').innerHTML = '';
+    submitBtn.disabled = true;
+    return;
+  }
+
+  const n = picksRequired(player, round);
+  const used = getUsedTeams(player);
+
+  let info = '';
+  const defaultForRound = round <= 2 ? 2 : 1;
+
+  if (player.restoredAfterRound != null) {
+    const penaltyRound = player.restoredAfterRound + 1;
+    if (round === penaltyRound) {
+      const penaltyType = player.restoredAfterRound <= 2 ? 'R1/R2' : 'R3/R4';
+      info = `<div class="alert alert-purple" style="background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); color:#a78bfa;">🔄 You were restored after elimination in ${penaltyType} — must pick <strong>${n} teams</strong> as a re-entry penalty.</div>`;
+    } else if (round > penaltyRound) {
+      const penaltyPicks = (player.picks || {})[penaltyRound] || [];
+      const wentClean = penaltyPicks.length > 0 && !penaltyPicks.some(p => p.result === 'loss');
+      if (wentClean) {
+        info = `<div class="alert alert-success">✅ Re-entry complete — you're back to normal picks!</div>`;
+      }
+    }
+  } else if (n > defaultForRound) {
+    const reason = round === 2 ? 'had a loss in R1' : round === 3 ? 'had a loss in R1/R2' : `lost a pick in R${round-1}`;
+    info = `<div class="alert alert-info">⚠️ You ${reason} — must pick <strong>${n} teams</strong>. No previously used teams.</div>`;
+  } else if (round >= 3 && n === 1) {
+    info = `<div class="alert alert-success">✅ Perfect last round — only 1 pick required!</div>`;
+  }
+  if (used.size) info += `<div style="font-size:0.8rem; color:var(--gray); font-family:'Barlow Condensed',sans-serif; margin-bottom:12px;">Already used: ${[...used].join(', ')}</div>`;
+
+  let inputs = '';
+  for (let i = 0; i < n; i++) inputs += buildTeamDropdown(i, round, used);
+
+  document.getElementById('picks-modal-inputs').innerHTML = info + inputs;
+}
+
+window.submitMyPicks = function submitMyPicks() {
+  const round = parseInt(document.getElementById('picks-modal-round').value);
+  const player = getPlayer(currentUser.playerId);
+  const alertEl = document.getElementById('picks-modal-alert');
+
+  if (!player || isRoundLocked(round)) return;
+
+  const selects = [...document.querySelectorAll('#picks-modal-inputs .pick-select')];
+  const teams = selects.map(s => s.value);
+  const used = getUsedTeams(player);
+
+  for (const t of teams) {
+    if (!t) { alertEl.innerHTML = '<div class="alert alert-danger">Please select all picks.</div>'; return; }
+    if (used.has(t)) { alertEl.innerHTML = `<div class="alert alert-danger">"${t}" already used.</div>`; return; }
+  }
+  if (new Set(teams).size !== teams.length) { alertEl.innerHTML = '<div class="alert alert-danger">Duplicate team selected.</div>'; return; }
+
+  if (!player.picks) player.picks = {};
+  player.picks[round] = applyAutoResults(teams.map(t => ({ team: t, result: 'pending' })), round);
+  checkElimination(player, round);
+  clearRestoredFlag(player);
+  saveState();
+  closeModal('picksModal');
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER — STANDINGS
+// ══════════════════════════════════════════════════════════════════
+function renderStandings() {
+  const alive = state.players.filter(p => !p.eliminated);
+  const elim  = state.players.filter(p => p.eliminated);
+  document.getElementById('alive-count').textContent = alive.length;
+  document.getElementById('elim-count').textContent  = elim.length;
+
+  if (!state.players.length) {
+    document.getElementById('standings-body').innerHTML = '<div class="empty-state"><div class="icon">🏀</div><p>No players yet.</p></div>';
+    return;
+  }
+
+  function row(p) {
+    const allPicks = Object.entries(p.picks || {}).flatMap(([r, rp]) => rp.map(pk => ({...pk, round:parseInt(r)})));
+    const w = allPicks.filter(x => x.result==='win').length;
+    const l = allPicks.filter(x => x.result==='loss').length;
+    const used = getUsedTeams(p).size;
+    const sc = p.eliminated ? 'status-eliminated' : 'status-alive';
+    return `<tr>
+      <td style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem;">${p.name}</td>
+      <td><span class="player-status ${sc}">${p.eliminated?'Eliminated':'Alive'}</span></td>
+      <td style="color:var(--green); font-family:'Barlow Condensed',sans-serif;">${w}</td>
+      <td style="color:var(--red);   font-family:'Barlow Condensed',sans-serif;">${l}</td>
+      <td style="color:var(--gray);  font-family:'Barlow Condensed',sans-serif;">${used}</td>
+    </tr>`;
+  }
+
+  let html = '<div class="card"><table class="standings-table"><thead><tr><th>Player</th><th>Status</th><th>✅ W</th><th>❌ L</th><th>Teams Used</th></tr></thead><tbody>';
+  html += alive.map(row).join('');
+  if (elim.length) {
+    html += `<tr><td colspan="5" style="padding:5px 13px; font-family:'Bebas Neue',sans-serif; letter-spacing:2px; color:var(--red); font-size:0.85rem; background:rgba(230,57,70,0.05);">ELIMINATED</td></tr>`;
+    html += elim.map(row).join('');
+  }
+  html += '</tbody></table></div>';
+
+  if (alive.length === 1 && state.players.length > 1) {
+    html = `<div class="alert alert-success" style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:2px; text-align:center; padding:20px;">🏆 ${alive[0].name} WINS THE POOL!</div>` + html;
+  }
+  document.getElementById('standings-body').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER — MY PICKS
+// ══════════════════════════════════════════════════════════════════
+function renderMyPicks() {
+  if (!currentUser || !currentUser.playerId) {
+    document.getElementById('my-picks-body').innerHTML = '<div class="empty-state"><div class="icon">🔒</div><p>Sign in to see your picks.</p></div>';
+    return;
+  }
+  const player = getPlayer(currentUser.playerId);
+  if (!player) return;
+
+  const rounds = Object.keys(player.picks || {}).map(Number).sort((a,b)=>a-b);
+  if (!rounds.length) {
+    document.getElementById('my-picks-body').innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No picks submitted yet. Use "Submit Picks" to get started.</p></div>';
+    return;
+  }
+
+  let html = '';
+  const upcoming = picksRequired(player, Math.max(...rounds) + 1);
+  html += `<div class="alert alert-info" style="margin-bottom:18px;">Next round you need <strong>${upcoming} pick${upcoming>1?'s':''}</strong>. ${isRoundLocked(Math.max(...rounds)+1)?'🔒 Round is currently locked.':''}</div>`;
+
+  for (const r of rounds) {
+    const rPicks = player.picks[r];
+    const label = TOURNAMENT[r]?.label || `Round ${r}`;
+    const locked = isRoundLocked(r);
+    html += `<div class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:2px; color:var(--orange);">${label}</div>
+        <span class="round-lock-badge ${locked?'lock-closed':'lock-open'}">${locked?'🔒 Locked':'🔓 Open'}</span>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        ${rPicks.map(pk => {
+          const cls = pk.result==='win'?'win':pk.result==='loss'?'loss':'pending';
+          return `<span class="pick-chip ${cls}">${pk.team} ${pk.result==='win'?'✅':pk.result==='loss'?'❌':'⏳'}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+  document.getElementById('my-picks-body').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER — ALL PICKS
+// ══════════════════════════════════════════════════════════════════
+window.renderAllPicks = function renderAllPicks() {
+  const round = parseInt(document.getElementById('round-selector').value);
+  const locked = isRoundLocked(round);
+  const canSeeAll = isAdmin() || locked;
+
+  let html = '';
+  if (!locked && !isAdmin()) {
+    html = `<div class="alert alert-info">👁 Other players' picks are hidden until this round locks. You can see your own picks in the "My Picks" tab.</div>`;
+  }
+
+  if (!state.players.length) {
+    document.getElementById('all-picks-body').innerHTML = html + '<div class="empty-state"><div class="icon">📋</div><p>No players yet.</p></div>';
+    return;
+  }
+
+  const alive = state.players.filter(p => !p.eliminated);
+  const elim  = state.players.filter(p => p.eliminated);
+  const all   = [...alive, ...elim];
+
+  html += '<div class="card"><table class="standings-table"><thead><tr><th>Player</th><th>Status</th><th>Picks</th>';
+  if (isAdmin()) html += '<th>Actions</th>';
+  html += '</tr></thead><tbody>';
+
+  for (const p of all) {
+    const rPicks = (p.picks || {})[round] || [];
+    const n = picksRequired(p, round);
+    const sc = p.eliminated ? 'status-eliminated' : 'status-alive';
+
+    let picksHtml;
+    if (!canSeeAll && p.accountId !== currentUser?.id) {
+      picksHtml = rPicks.length
+        ? `<span class="pick-chip hidden-pick">🔒 ${rPicks.length} pick${rPicks.length>1?'s':''} hidden</span>`
+        : `<span style="color:var(--gray); font-size:0.8rem;">No picks</span>`;
+    } else {
+      picksHtml = rPicks.length
+        ? rPicks.map(pk => {
+            const cls = pk.result==='win'?'win':pk.result==='loss'?'loss':'pending';
+            return `<span class="pick-chip ${cls}">${pk.team}</span>`;
+          }).join('')
+        : `<span style="color:var(--gray); font-size:0.8rem; font-family:'Barlow Condensed',sans-serif;">No picks (${n} required)</span>`;
+    }
+
+    let actionsHtml = '';
+    if (isAdmin() && rPicks.length) {
+      actionsHtml = rPicks.map((pk, i) => pk.result === 'pending'
+        ? `<button class="btn btn-small btn-secondary" onclick="openResultModal(${p.id},${round},${i},'${pk.team.replace(/'/g,"\\'")}')">Mark ${pk.team}</button>`
+        : '').join(' ');
+    }
+
+    html += `<tr>
+      <td style="font-family:'Barlow Condensed',sans-serif; font-weight:700;">${p.name}</td>
+      <td><span class="player-status ${sc}">${p.eliminated?'Eliminated':'Alive'}</span></td>
+      <td>${picksHtml}</td>
+      ${isAdmin() ? `<td>${actionsHtml}</td>` : ''}
+    </tr>`;
+  }
+
+  html += '</tbody></table></div>';
+  document.getElementById('all-picks-body').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER — ADMIN
+// ══════════════════════════════════════════════════════════════════
+function renderAdmin() {
+  if (!isAdmin()) return;
+
+  // Poll status
+  const pollBadge = document.getElementById('poll-status-badge');
+  if (pollBadge) pollBadge.textContent = getPollingStatus();
+
+  // Round locks grid
+  let locksHtml = '';
+  for (let r = 1; r <= 10; r++) {
+    const locked = isRoundLocked(r);
+    const label = TOURNAMENT[r]?.label || `Round ${r}`;
+    locksHtml += `<div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:5px; padding:10px 14px; gap:10px; flex-wrap:wrap;">
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.9rem;">${label}</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="round-lock-badge ${locked?'lock-closed':'lock-open'}">${locked?'🔒 Locked':'🔓 Open'}</span>
+        ${locked
+          ? `<button class="btn btn-small btn-green" onclick="toggleRoundLock(${r}, false)">Unlock</button>`
+          : `<button class="btn btn-small btn-danger" onclick="toggleRoundLock(${r}, true)">Lock Round</button>`
+        }
+      </div>
+    </div>`;
+  }
+  document.getElementById('round-locks-grid').innerHTML = locksHtml;
+
+  // Players list
+  let playersHtml = '';
+  for (const p of state.players) {
+    const sc = p.eliminated ? 'status-eliminated' : 'status-alive';
+    playersHtml += `<div class="player-card ${p.eliminated?'eliminated':''}">
+      <div>
+        <div class="player-name">${p.name}</div>
+        <div style="font-size:0.75rem; color:var(--gray); font-family:'Barlow Condensed',sans-serif; margin-top:2px;">${getUsedTeams(p).size} teams used</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span class="player-status ${sc}">${p.eliminated?'Eliminated':'Alive'}</span>
+        ${p.eliminated
+          ? (p.eliminatedInRound > 4
+            ? `<span style="font-size:0.72rem; color:var(--red); font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">R${p.eliminatedInRound} — cannot restore</span>`
+            : `<button class="btn btn-small btn-green" onclick="adminRestorePlayer(${p.id})">Restore (elim R${p.eliminatedInRound||'?'})</button>`)
+          : (p.restoredAfterRound != null ? `<span style="font-size:0.72rem; color:#a78bfa; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">🔄 Re-entry penalty active</span>` : '')}
+        <button class="btn btn-small btn-danger" onclick="adminRemovePlayer(${p.id})">Remove</button>
+      </div>
+    </div>`;
+  }
+  document.getElementById('admin-players-list').innerHTML = playersHtml || '<p style="color:var(--gray); font-family:\'Barlow Condensed\',sans-serif; letter-spacing:1px;">No players yet.</p>';
+
+  // Override picks player selector
+  const sel = document.getElementById('admin-pick-player');
+  sel.innerHTML = state.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  updateAdminPickInputs();
+}
+
+window.toggleRoundLock = function toggleRoundLock(round, lock) {
+  state.roundLocks[round] = lock;
+  if (lock) applyLockPenalties(round);
+  saveState();
+  renderAdmin();
+  renderAll();
+  updateLockBanner();
+}
+
+function applyLockPenalties(round) {
+  // Any player with no picks for this round gets an automatic loss
+  for (const player of state.players) {
+    if (player.eliminated) continue;
+    const rPicks = (player.picks || {})[round] || [];
+    if (!rPicks.length) {
+      const n = picksRequired(player, round);
+      if (!player.picks) player.picks = {};
+      // Create n "no pick" loss entries
+      player.picks[round] = Array(n).fill(null).map(() => ({ team: '(no pick)', result: 'loss' }));
+      checkElimination(player, round);
+    }
+  }
+}
+
+function updateLockBanner() {
+  // Show banner if the next upcoming round is locked
+  const banner = document.getElementById('lock-banner');
+  const nextRound = getNextOpenRound();
+  if (nextRound && isRoundLocked(nextRound)) {
+    banner.textContent = `🔒 Round ${nextRound} is locked — picks are closed.`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function getNextOpenRound() {
+  for (let r = 1; r <= 10; r++) {
+    if (!isRoundLocked(r)) return r;
+  }
+  return null;
+}
+
+window.adminRestorePlayer = function adminRestorePlayer(id) {
+  const p = getPlayer(id);
+  if (!p) return;
+
+  const elimRound = p.eliminatedInRound || 0;
+  if (elimRound > 4) {
+    alert(`${p.name} was eliminated in Round ${elimRound}. Players can only be restored up to Round 4.`);
+    return;
+  }
+
+  p.eliminated = false;
+  p.restoredAfterRound = elimRound; // track so penalty picks are calculated correctly
+  saveState();
+  renderAdmin();
+  renderAll();
+}
+
+window.adminRemovePlayer = function adminRemovePlayer(id) {
+  if (!confirm('Remove this player from the pool?')) return;
+  // Remove player and their account
+  const player = getPlayer(id);
+  if (player) state.accounts = state.accounts.filter(a => a.id !== player.accountId);
+  state.players = state.players.filter(p => p.id !== id);
+  saveState();
+  renderAdmin();
+  renderAll();
+}
+
+// adminAddPlayer removed — users self-register
+
+// Admin pick override
+window.updateAdminPickInputs = function updateAdminPickInputs() {
+  const playerId = parseInt(document.getElementById('admin-pick-player').value);
+  const round    = parseInt(document.getElementById('admin-pick-round').value);
+  const player   = getPlayer(playerId);
+  const container = document.getElementById('admin-pick-inputs');
+  if (!player) { container.innerHTML = ''; return; }
+
+  const n = picksRequired(player, round);
+  const used = getUsedTeams(player);
+  const existing = (player.picks || {})[round] || [];
+
+  let html = `<div style="font-size:0.8rem; color:var(--gray); font-family:'Barlow Condensed',sans-serif; margin-bottom:10px;">Required picks: <strong style="color:var(--orange)">${n}</strong>${used.size ? ` | Used: ${[...used].join(', ')}` : ''}</div>`;
+  for (let i = 0; i < n; i++) {
+    const av = getTeamsForRound(round).filter(t => !used.has(t) || existing[i]?.team === t);
+    html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+      <label style="min-width:64px; margin-bottom:0;">Pick ${i+1}</label>
+      <select class="admin-pick-select" style="flex:1; min-width:180px;">
+        <option value="">— Select team —</option>
+        ${av.map(t => `<option value="${t}" ${existing[i]?.team===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+window.adminSubmitPicks = function adminSubmitPicks() {
+  const playerId = parseInt(document.getElementById('admin-pick-player').value);
+  const round    = parseInt(document.getElementById('admin-pick-round').value);
+  const player   = getPlayer(playerId);
+  const alertEl  = document.getElementById('admin-pick-alert');
+  alertEl.innerHTML = '';
+  if (!player) return;
+
+  const teams = [...document.querySelectorAll('.admin-pick-select')].map(s => s.value);
+  for (const t of teams) {
+    if (!t) { alertEl.innerHTML = '<div class="alert alert-danger">Please select all picks.</div>'; return; }
+  }
+  if (new Set(teams).size !== teams.length) { alertEl.innerHTML = '<div class="alert alert-danger">Duplicate team.</div>'; return; }
+
+  if (!player.picks) player.picks = {};
+  player.picks[round] = applyAutoResults(teams.map(t => ({ team: t, result: 'pending' })), round);
+  checkElimination(player, round);
+  clearRestoredFlag(player);
+  saveState();
+  alertEl.innerHTML = `<div class="alert alert-success">✅ Picks saved for ${player.name} — Round ${round}.</div>`;
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RESULT MODAL (admin only)
+// ══════════════════════════════════════════════════════════════════
+window.openResultModal = function openResultModal(playerId, round, idx, teamName) {
+  document.getElementById('result-player-id').value = playerId;
+  document.getElementById('result-round').value = round;
+  document.getElementById('result-pick-idx').value = idx;
+  document.getElementById('result-team-name').textContent = teamName;
+  openModal('resultModal');
+}
+
+window.markResult = function markResult(result) {
+  const playerId = parseInt(document.getElementById('result-player-id').value);
+  const round    = parseInt(document.getElementById('result-round').value);
+  const idx      = parseInt(document.getElementById('result-pick-idx').value);
+  const player   = getPlayer(playerId);
+  if (!player || !player.picks[round]) return;
+  player.picks[round][idx].result = result;
+  checkElimination(player, round);
+  clearRestoredFlag(player);
+  saveState();
+  closeModal('resultModal');
+  renderAll();
+  renderAdmin();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════════════════════════
+function renderAll() {
+  renderStandings();
+  renderMyPicks();
+  renderAllPicks();
+  updateLockBanner();
+}
+
+// Enter key on login
+document.getElementById('login-name').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('reg-name').addEventListener('keydown',   e => { if (e.key==='Enter') doRegister(); });
+
+// Admin pick player change listener
+document.getElementById('admin-pick-player')?.addEventListener('change', updateAdminPickInputs);
+document.getElementById('admin-pick-round')?.addEventListener('change', updateAdminPickInputs);
+document.getElementById('picks-modal-round')?.addEventListener('change', updatePicksModalInputs);
+
+// ── Start app ──
+initState();
+</script>
+</body>
+</html>
