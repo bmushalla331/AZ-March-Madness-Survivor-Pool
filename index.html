@@ -328,50 +328,58 @@
     <div class="section-label">How It Works</div>
     <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;">Pool Rules</div>
   </div>
+
   <div class="card" style="margin-bottom:18px; border-color:rgba(244,123,32,0.3);">
     <div class="card-title">📋 Core Rules</div>
     <ul class="rules-list">
-      <li><strong>No Repeats</strong>Once you pick a team, you cannot pick them again for the rest of the tournament. Previously used teams are removed from your selection list.</li>
-      <li><strong>Only Active Teams</strong>Teams that have already lost are removed from all selection lists automatically.</li>
-      <li><strong>Win Outright</strong>All picks are based on the team winning their game — not against the spread.</li>
-      <li><strong>Picks Lock at Tip-Off</strong>Picks for each round lock at the first scheduled tip-off of that round. No picks after the lock = automatic loss for that round.</li>
-      <li><strong>Elimination — Any Round</strong>Any single incorrect pick in any round eliminates you immediately. Admin can restore players who were eliminated in Rounds 1–4 only. Eliminations after Round 4 are permanent.</li>
-      <li><strong>Re-Entry Penalty</strong>Restored players must pick <strong>4 teams</strong> if eliminated in R1/R2, or <strong>5 teams</strong> if eliminated in R3/R4. Go perfect in the penalty round and you're back to the normal pick count.</li>
-      <li><strong>Winner Take All</strong>Last survivor wins the pool. Multiple survivors may agree to split.</li>
+      <li><strong>Pick to Win Outright</strong>All picks are based on the team winning their game outright — not against the spread.</li>
+      <li><strong>No Repeats</strong>Once you pick a team, you cannot pick them again for the rest of the tournament. Used teams are removed from your selection list automatically.</li>
+      <li><strong>Only Active Teams</strong>Teams that have been eliminated from the tournament are removed from the pick list automatically after each round.</li>
+      <li><strong>Picks Lock at First Tip-Off</strong>Picks lock automatically when the first game of each round day begins. Once locked, no new picks can be submitted. Missing picks when the round locks are recorded as automatic losses.</li>
+      <li><strong>Any Loss = Eliminated</strong>Any single incorrect pick in any round eliminates you immediately.</li>
+      <li><strong>Admin Restore (R1–R4 only)</strong>Admin can restore an eliminated player, but only if they were eliminated in Rounds 1–4. Eliminations after Round 4 are permanent.</li>
+      <li><strong>Re-Entry Penalty</strong>Restored players must pick extra teams — <strong>4 teams</strong> if eliminated in R1/R2, or <strong>5 teams</strong> if eliminated in R3/R4. Go perfect in the penalty round and you return to normal pick counts the following round.</li>
+      <li><strong>Winner Take All</strong>Last survivor wins. Multiple survivors may agree to split the prize.</li>
     </ul>
   </div>
+
   <div class="two-col" style="margin-bottom:18px;">
     <div class="card">
-      <div class="card-title">🗓️ Entry Rounds (R1 & R2)</div>
+      <div class="card-title">🗓️ R1 &amp; R2 — Entry Rounds</div>
       <ul class="rules-list">
-        <li><strong>Round 1 — Thursday, Mar 20</strong>Every player picks <em>2 teams</em>. No elimination risk — results carry forward.</li>
-        <li><strong>Round 2 — Friday, Mar 21</strong>✅ Perfect R1? → Pick <strong>2 teams</strong>.<br><br>❌ Any loss in R1? → Picks <strong>double</strong>: must pick <strong>4 teams</strong>. No previously used teams. Still no elimination risk.</li>
+        <li><strong>Round 1 — Thu Mar 19</strong>Every player picks <em>2 teams</em>. Any loss = eliminated. Admin can restore you for R2 with a penalty.</li>
+        <li><strong>Round 2 — Fri Mar 20</strong>
+          ✅ Perfect R1 → pick <strong>2 teams</strong>.<br><br>
+          🔄 Restored after R1 loss → pick <strong>4 teams</strong> (penalty). Go clean = back to normal next round. Any loss = eliminated again.
+        </li>
       </ul>
     </div>
     <div class="card">
-      <div class="card-title">⚡ Carry-Forward Rule (R3+)</div>
+      <div class="card-title">⚡ R3+ — Carry-Forward Rule</div>
       <ul class="rules-list">
-        <li><strong>Perfect last round?</strong>Pick just <strong>1 team</strong> next round. You've earned it.</li>
-        <li><strong>Any loss last round?</strong>Required picks <strong>double</strong> — last round's count × 2.<br><br>Examples: 1→2, 2→4, 4→8.</li>
-        <li><strong>Elimination — any round.</strong>Any single loss in any round eliminates you immediately. Admin can restore eliminated players up to Round 4 only.</li>
+        <li><strong>Perfect last round?</strong>Pick just <strong>1 team</strong> next round.</li>
+        <li><strong>Any loss last round?</strong>Required picks <strong>double</strong> — previous round count × 2.<br><br>Examples: 1→2 picks, 2→4 picks, 4→8 picks.</li>
+        <li><strong>Any loss in any round = eliminated immediately.</strong>Admin restore available only up to Round 4.</li>
       </ul>
     </div>
   </div>
+
   <div class="card" style="margin-bottom:18px; border-color:rgba(255,215,0,0.2);">
     <div class="card-title" style="color:var(--gold);">📖 Worked Example</div>
     <div style="overflow-x:auto;">
       <table class="standings-table">
-        <thead><tr><th>Round</th><th>Date</th><th>Stage</th><th style="color:var(--green)">Scenario A — Clean</th><th style="color:var(--orange)">Scenario B — Lost R1</th><th>Elim?</th></tr></thead>
+        <thead><tr><th>Round</th><th>Date</th><th>Stage</th><th style="color:var(--green)">Player A — Clean</th><th style="color:var(--orange)">Player B — Eliminated &amp; Restored R1</th></tr></thead>
         <tbody>
-          <tr><td><strong>R1</strong></td><td>Thu Mar 20</td><td>Rd of 64</td><td>2 picks → ✅ both win</td><td>2 picks → ❌ both lose</td><td style="color:var(--gray)">No</td></tr>
-          <tr><td><strong>R2</strong></td><td>Fri Mar 21</td><td>Rd of 64</td><td>2 picks → ✅ both win</td><td style="color:var(--orange)">4 picks (2×2) → ✅ all win</td><td style="color:var(--gray)">No</td></tr>
-          <tr><td><strong>R3</strong></td><td>Sat Mar 22</td><td>Rd of 32</td><td>1 pick → ✅ win</td><td style="color:var(--green)">1 pick (recovered!) → ❌ loss</td><td style="color:var(--gray)">No</td></tr>
-          <tr><td><strong>R4</strong></td><td>Sun Mar 23</td><td>Rd of 32</td><td>1 pick → ✅ win</td><td style="color:var(--orange)">2 picks (1×2) → ❌ loss</td><td style="color:var(--red)">YES</td></tr>
-          <tr><td><strong>R5+</strong></td><td>Mar 26+</td><td>Sweet 16+</td><td>1 pick/round</td><td style="color:var(--gray)">—</td><td style="color:var(--red)">Any loss</td></tr>
+          <tr><td><strong>R1</strong></td><td>Thu Mar 19</td><td>Round of 64</td><td style="color:var(--green)">2 picks → ✅ both win</td><td>2 picks → ❌ loss → <span style="color:var(--red)">ELIMINATED</span></td></tr>
+          <tr><td><strong>R2</strong></td><td>Fri Mar 20</td><td>Round of 64</td><td style="color:var(--green)">2 picks → ✅ both win</td><td style="color:var(--orange)">Admin restores → 4 picks penalty → ✅ all correct</td></tr>
+          <tr><td><strong>R3</strong></td><td>Sat Mar 21</td><td>Round of 32</td><td style="color:var(--green)">1 pick → ✅ win</td><td style="color:var(--green)">Penalty cleared → 1 pick → ✅ win</td></tr>
+          <tr><td><strong>R4</strong></td><td>Sun Mar 22</td><td>Round of 32</td><td style="color:var(--green)">1 pick → ✅ win</td><td>1 pick → ❌ loss → <span style="color:var(--red)">ELIMINATED</span> (admin can restore, 5 picks penalty)</td></tr>
+          <tr><td><strong>R5+</strong></td><td>Mar 26 →</td><td>Sweet 16 →</td><td style="color:var(--green)">1 pick/round — last survivor wins</td><td style="color:var(--red)">Elimination after R4 is permanent</td></tr>
         </tbody>
       </table>
     </div>
   </div>
+
   <div class="card" style="border-color:rgba(45,198,83,0.2);">
     <div class="card-title" style="color:var(--green);">⚡ Quick Reference</div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px;">
@@ -381,20 +389,19 @@
       </div>
       <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
         <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--orange); margin-bottom:5px;">Any Loss</div>
-        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Next round picks = this round × <strong>2</strong></div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Eliminated immediately. Admin restore available R1–R4 only.</div>
       </div>
       <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
         <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--orange); margin-bottom:5px;">No Repeats</div>
-        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Used teams are <strong>never available again</strong></div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Teams you have picked are <strong>never available again</strong></div>
       </div>
       <div style="background:rgba(255,255,255,0.03); border-radius:5px; padding:13px; border:1px solid rgba(255,255,255,0.07);">
-        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--red); margin-bottom:5px;">Eliminated</div>
-        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Starts <strong>Round 4</strong> — any single loss = out</div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:1px; color:var(--red); margin-bottom:5px;">Pick Lock</div>
+        <div style="font-size:0.85rem; line-height:1.6; color:var(--light);">Locks <strong>automatically</strong> at first tip-off each day. No picks submitted = auto-loss.</div>
       </div>
     </div>
   </div>
 </div>
-
 <!-- ADMIN TAB -->
 <div id="tab-admin" class="section">
   <div style="margin-bottom:20px;">
@@ -405,7 +412,13 @@
   <!-- Round Locks -->
   <div class="card" style="border-color:rgba(124,58,237,0.3); margin-bottom:18px;">
     <div class="card-title" style="color:#a78bfa;">🔒 Round Lock Management</div>
-    <div class="alert alert-purple" style="margin-bottom:14px;">Locking a round prevents all new picks. Players with no picks for that round are automatically marked as a loss. Round 4+ losses result in elimination.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div class="alert alert-purple" style="margin-bottom:0;flex:1;">Picks auto-lock when first game tips via ESPN. Manual lock/unlock available as override.</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="poll-status-badge" style="font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;letter-spacing:1px;color:var(--gray);"></span>
+        <button class="btn btn-small btn-purple" onclick="adminForcePoll()">🔄 Force Score Update</button>
+      </div>
+    </div>
     <div id="round-locks-grid" style="display:grid; gap:8px;"></div>
   </div>
 
@@ -589,9 +602,7 @@ const TOURNAMENT = {
   ]}
 };
 
-// Future tip times hook (2026: replace with scheduled DateTime objects)
-// const ROUND_TIP_TIMES = { 1: new Date('2026-03-19T12:00:00-05:00'), ... };
-const ROUND_TIP_TIMES = {}; // Empty = admin-controlled locking for 2025
+// Auto-locking handled by ESPN polling (checkAutoLock). Admin can override manually.
 
 function getTeamsForRound(round) {
   const data = TOURNAMENT[round];
@@ -622,6 +633,177 @@ function getActualResult(team, round) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// ESPN AUTO-SCORE ENGINE
+// ══════════════════════════════════════════════════════════════════
+
+const ESPN_NAME_MAP = {
+  'Duke Blue Devils':'Duke','Arizona Wildcats':'Arizona','Michigan Wolverines':'Michigan',
+  'Florida Gators':'Florida','Houston Cougars':'Houston','Auburn Tigers':'Auburn',
+  'UConn Huskies':'UConn','Connecticut':'UConn','Purdue Boilermakers':'Purdue',
+  'Iowa State Cyclones':'Iowa State','Michigan State Spartans':'Michigan St',
+  'Michigan St Spartans':'Michigan St','Kansas Jayhawks':'Kansas',
+  "St. John's Red Storm":"St. John's","Saint John's":"St. John's",
+  'Texas Tech Red Raiders':'Texas Tech','Alabama Crimson Tide':'Alabama',
+  'Tennessee Volunteers':'Tennessee','Kentucky Wildcats':'Kentucky',
+  'UCLA Bruins':'UCLA','Virginia Cavaliers':'Virginia',
+  'Wisconsin Badgers':'Wisconsin','Arkansas Razorbacks':'Arkansas',
+  'Gonzaga Bulldogs':'Gonzaga','BYU Cougars':'BYU','Ohio State Buckeyes':'Ohio State',
+  'Louisville Cardinals':'Louisville','Michigan State':'Michigan St',
+  "Saint Mary's Gaels":"Saint Mary's","Saint Mary's":"Saint Mary's",
+  'Nebraska Cornhuskers':'Nebraska','North Carolina Tar Heels':'North Carolina',
+  'Clemson Tigers':'Clemson','Vanderbilt Commodores':'Vanderbilt',
+  'Illinois Fighting Illini':'Illinois','Georgia Bulldogs':'Georgia',
+  'Saint Louis Billikens':'Saint Louis','Iowa Hawkeyes':'Iowa',
+  'McNeese Cowboys':'McNeese','Texas A&M Aggies':'Texas A&M','Idaho Vandals':'Idaho',
+  'Troy Trojans':'Troy','Prairie View A&M Panthers':'Prairie View',
+  'Penn Quakers':'Penn','Villanova Wildcats':'Villanova','Utah State Aggies':'Utah State',
+  'Missouri Tigers':'Missouri','Miami Hurricanes':'Miami FL','Miami (FL)':'Miami FL',
+  'Queens Royals':'Queens','LIU Sharks':'LIU','High Point Panthers':'High Point',
+  'Hawaii Warriors':'Hawaii','Texas Longhorns':'Texas','Kennesaw State Owls':'Kennesaw State',
+  'Northern Iowa Panthers':'Northern Iowa','Cal Baptist Lancers':'Cal Baptist',
+  'UCF Knights':'UCF','Furman Paladins':'Furman','UMBC Retrievers':'UMBC',
+  'Akron Zips':'Akron','Hofstra Pride':'Hofstra','Miami (OH) RedHawks':'Miami OH',
+  'Wright State Raiders':'Wright State','Santa Clara Broncos':'Santa Clara',
+  'Tennessee State Tigers':'Tennessee State','TCU Horned Frogs':'TCU',
+  'South Florida Bulls':'South Florida','North Dakota State Bison':'North Dakota St',
+  'Siena Saints':'Siena','VCU Rams':'VCU',
+};
+
+function normalizeESPNName(raw) {
+  return ESPN_NAME_MAP[raw] || raw;
+}
+
+// Pool round → calendar date (ET)
+const ROUND_DATES = {
+  1:'2026-03-19', 2:'2026-03-20',
+  3:'2026-03-21', 4:'2026-03-22',
+  5:'2026-03-26', 6:'2026-03-27',
+  7:'2026-03-28', 8:'2026-03-29',
+  9:'2026-04-04', 10:'2026-04-06',
+};
+const DATE_TO_ROUND = Object.fromEntries(
+  Object.entries(ROUND_DATES).map(([r,d]) => [d, parseInt(r)])
+);
+
+let _scorePollTimer = null;
+
+function todayET() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+function getCurrentPoolRound() { return DATE_TO_ROUND[todayET()] || null; }
+function isTournamentDay()     { return getCurrentPoolRound() !== null; }
+
+async function fetchESPNScores() {
+  const url = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=64';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.events || [];
+  } catch(e) {
+    console.warn('[ESPN] fetch failed:', e);
+    return [];
+  }
+}
+
+async function processESPNScores(events) {
+  if (!events.length) return;
+  let anyChange = false;
+
+  for (const event of events) {
+    if (event.status?.type?.name !== 'STATUS_FINAL') continue;
+    const comps = event.competitions?.[0]?.competitors || [];
+    if (comps.length < 2) continue;
+    const winner = comps.find(c => c.winner);
+    const loser  = comps.find(c => !c.winner);
+    if (!winner || !loser) continue;
+
+    const winName  = normalizeESPNName(winner.team?.displayName || winner.team?.name || '');
+    const lossName = normalizeESPNName(loser.team?.displayName  || loser.team?.name  || '');
+
+    for (const [rStr, rData] of Object.entries(TOURNAMENT)) {
+      const round = parseInt(rStr);
+      for (const game of rData.games) {
+        if (game.winner) continue;
+        const hasWin  = game.home === winName  || game.away === winName;
+        const hasLoss = game.home === lossName || game.away === lossName;
+        if (!hasWin || !hasLoss) continue;
+
+        game.winner = winName;
+        anyChange = true;
+
+        for (const player of state.players) {
+          if (player.eliminated) continue;
+          const rPicks = (player.picks || {})[round] || [];
+          let changed = false;
+          for (const pick of rPicks) {
+            if (pick.result !== 'pending') continue;
+            if (pick.team === winName)  { pick.result = 'win';  changed = true; }
+            if (pick.team === lossName) { pick.result = 'loss'; changed = true; }
+          }
+          if (changed) {
+            checkElimination(player, round);
+            clearRestoredFlag(player);
+          }
+        }
+      }
+    }
+  }
+
+  if (anyChange) {
+    await saveState();
+    renderAll();
+    console.log('[ESPN] Results updated');
+  }
+}
+
+async function checkAutoLock() {
+  const round = getCurrentPoolRound();
+  if (!round || isRoundLocked(round)) return;
+  const events = await fetchESPNScores();
+  const anyStarted = events.some(e => {
+    const s = e.status?.type?.name;
+    return s === 'STATUS_IN_PROGRESS' || s === 'STATUS_FINAL' || s === 'STATUS_HALFTIME';
+  });
+  if (anyStarted) {
+    console.log(`[AutoLock] Locking round ${round}`);
+    state.roundLocks[round] = true;
+    applyLockPenalties(round);
+    await saveState();
+    renderAll();
+    updateLockBanner();
+  }
+}
+
+function startScorePolling() {
+  if (_scorePollTimer) return;
+  const tick = async () => {
+    if (!isTournamentDay()) return;
+    await checkAutoLock();
+    const events = await fetchESPNScores();
+    await processESPNScores(events);
+  };
+  tick();
+  _scorePollTimer = setInterval(tick, 60_000);
+  console.log('[ESPN] Polling started');
+}
+
+function getPollingStatus() {
+  if (!isTournamentDay()) return 'No games scheduled today';
+  return _scorePollTimer ? '\uD83D\uDFE2 Live — auto-updating every 60s' : '\u26AA Not polling';
+}
+
+window.adminForcePoll = async function() {
+  const btn = document.querySelector('[onclick="adminForcePoll()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '\u23F3 Polling...'; }
+  await checkAutoLock();
+  const events = await fetchESPNScores();
+  await processESPNScores(events);
+  if (btn) { btn.disabled = false; btn.textContent = '\uD83D\uDD04 Force Score Update'; }
+  renderAdmin();
+};
+
+
+// ══════════════════════════════════════════════════════════════════
 // FIREBASE + FIRESTORE
 // ══════════════════════════════════════════════════════════════════
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -642,7 +824,7 @@ const db    = getFirestore(fbApp);
 const STATE_DOC = doc(db, 'pool', 'state');
 
 const DEFAULT_STATE = {
-  accounts:   [{ id: 0, name: 'Admin', pin: '1234', role: 'admin' }],
+  accounts:   [{ id: 0, name: 'Admin', pin: '0331', role: 'admin' }],
   players:    [],
   roundLocks: {},
   nextId:     1
@@ -680,6 +862,9 @@ async function initState() {
   }, err => {
     console.error('Snapshot error:', err);
   });
+
+  // Start ESPN score polling on tournament days
+  startScorePolling();
 }
 
 // ── Save to Firestore ───────────────────────────────────────────
@@ -1186,6 +1371,10 @@ window.renderAllPicks = function renderAllPicks() {
 // ══════════════════════════════════════════════════════════════════
 function renderAdmin() {
   if (!isAdmin()) return;
+
+  // Poll status
+  const pollBadge = document.getElementById('poll-status-badge');
+  if (pollBadge) pollBadge.textContent = getPollingStatus();
 
   // Round locks grid
   let locksHtml = '';
