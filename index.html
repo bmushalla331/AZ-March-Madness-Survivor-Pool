@@ -662,18 +662,28 @@ function getCurrentPoolRound() { return DATE_TO_ROUND[todayET()] || null; }
 function isTournamentDay()     { return getCurrentPoolRound() !== null; }
 
 async function fetchESPNScores() {
-  // Use allorigins CORS proxy to bypass browser CORS restriction
-  const espnUrl = encodeURIComponent('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=64');
-  const proxyUrl = `https://api.allorigins.win/get?url=${espnUrl}`;
-  try {
-    const res  = await fetch(proxyUrl);
-    const data = await res.json();
-    const parsed = JSON.parse(data.contents);
-    return parsed.events || [];
-  } catch(e) {
-    console.warn('[ESPN] fetch failed:', e);
-    return [];
+  const ESPN = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=64';
+  // Try multiple CORS proxies in order
+  const proxies = [
+    url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  for (const makeUrl of proxies) {
+    try {
+      const res = await fetch(makeUrl(ESPN), { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const text = await res.text();
+      const data = JSON.parse(text);
+      const events = data.events || [];
+      console.log(`[ESPN] Got ${events.length} events`);
+      return events;
+    } catch(e) {
+      console.warn('[ESPN] proxy failed, trying next...', e.message);
+    }
   }
+  console.error('[ESPN] All proxies failed');
+  return [];
 }
 
 async function processESPNScores(events) {
