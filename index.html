@@ -530,24 +530,24 @@ const TOURNAMENT = {
 
   1: { label:"R1 — Thu Mar 19 (Round of 64)", games:[
     // EAST — Greenville SC & Buffalo NY (verified from NCAA official scoreboard)
-    {home:"Ohio State",    away:"TCU",             winner:null}, // 12:15 PM CBS
-    {home:"Duke",          away:"Siena",           winner:null}, // 2:50 PM CBS
-    {home:"North Carolina",away:"VCU",             winner:null}, // 6:50 PM TNT
-    {home:"Illinois",      away:"Penn",            winner:null}, // 9:25 PM TNT
-    {home:"Louisville",    away:"South Florida",   winner:null}, // 1:30 PM TNT
-    {home:"Michigan St",   away:"North Dakota St", winner:null}, // 4:05 PM TNT
-    {home:"Michigan",      away:"Howard",          winner:null}, // 7:10 PM CBS
-    {home:"Georgia",       away:"Saint Louis",     winner:null}, // 9:45 PM CBS
+    {home:"Ohio State",    away:"TCU",             winner:"TCU"}, // 12:15 PM CBS
+    {home:"Duke",          away:"Siena",           winner:"Duke"}, // 2:50 PM CBS
+    {home:"North Carolina",away:"VCU",             winner:"VCU"}, // 6:50 PM TNT
+    {home:"Illinois",      away:"Penn",            winner:"Illinois"}, // 9:25 PM TNT
+    {home:"Louisville",    away:"South Florida",   winner:"Louisville"}, // 1:30 PM TNT
+    {home:"Michigan St",   away:"North Dakota St", winner:"Michigan St"}, // 4:05 PM TNT
+    {home:"Michigan",      away:"Howard",          winner:"Michigan"}, // 7:10 PM CBS
+    {home:"Georgia",       away:"Saint Louis",     winner:"Saint Louis"}, // 9:45 PM CBS
     // WEST — Portland OR
-    {home:"Wisconsin",     away:"High Point",      winner:null}, // 1:50 PM TBS
-    {home:"Arkansas",      away:"Hawaii",          winner:null}, // 4:25 PM TBS
-    {home:"BYU",           away:"Texas",           winner:null}, // 7:25 PM TBS
-    {home:"Gonzaga",       away:"Kennesaw State",  winner:null}, // 10:00 PM TBS
+    {home:"Wisconsin",     away:"High Point",      winner:"High Point"}, // 1:50 PM TBS
+    {home:"Arkansas",      away:"Hawaii",          winner:"Arkansas"}, // 4:25 PM TBS
+    {home:"BYU",           away:"Texas",           winner:"Texas"}, // 7:25 PM TBS
+    {home:"Gonzaga",       away:"Kennesaw State",  winner:"Gonzaga"}, // 10:00 PM TBS
     // SOUTH — Oklahoma City OK
-    {home:"Nebraska",      away:"Troy",            winner:null}, // 12:40 PM truTV
-    {home:"Vanderbilt",    away:"McNeese",         winner:null}, // 3:15 PM truTV
-    {home:"Saint Mary's",  away:"Texas A&M",       winner:null}, // 7:35 PM truTV
-    {home:"Houston",       away:"Idaho",           winner:null}, // 10:10 PM truTV
+    {home:"Nebraska",      away:"Troy",            winner:"Nebraska"}, // 12:40 PM truTV
+    {home:"Vanderbilt",    away:"McNeese",         winner:"Vanderbilt"}, // 3:15 PM truTV
+    {home:"Saint Mary's",  away:"Texas A&M",       winner:"Texas A&M"}, // 7:35 PM truTV
+    {home:"Houston",       away:"Idaho",           winner:"Houston"}, // 10:10 PM truTV
   ]},
 
   2: { label:"R2 — Fri Mar 20 (Round of 64)", games:[
@@ -574,10 +574,18 @@ const TOURNAMENT = {
   ]},
 
   3: { label:"R3 — Sat Mar 21 (Round of 32)", games:[
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    // Greenville
+    {home:"Duke",        away:"VCU",         winner:null},
+    {home:"TCU",         away:"Illinois",    winner:null},
+    // Buffalo
+    {home:"Michigan",    away:"Saint Louis", winner:null},
+    {home:"Michigan St", away:"Louisville",  winner:null},
+    // Portland
+    {home:"Arkansas",    away:"High Point",  winner:null},
+    {home:"Gonzaga",     away:"Texas",       winner:null},
+    // Oklahoma City
+    {home:"Houston",     away:"Texas A&M",   winner:null},
+    {home:"Nebraska",    away:"Vanderbilt",  winner:null},
   ]},
   4: { label:"R4 — Sun Mar 22 (Round of 32)", games:[
     {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
