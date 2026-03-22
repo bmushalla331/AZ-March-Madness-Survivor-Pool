@@ -552,25 +552,25 @@ const TOURNAMENT = {
 
   2: { label:"R2 — Fri Mar 20 (Round of 64)", games:[
     // EAST — Philadelphia PA
-    {home:"St. John's",    away:"Northern Iowa",   winner:null},
-    {home:"Kansas",        away:"Cal Baptist",     winner:null},
-    {home:"UCLA",          away:"UCF",             winner:null},
-    {home:"UConn",         away:"Furman",          winner:null},
+    {home:"St. John's",    away:"Northern Iowa",   winner:"St. John's"},
+    {home:"Kansas",        away:"Cal Baptist",     winner:"Kansas"},
+    {home:"UCLA",          away:"UCF",             winner:"UCLA"},
+    {home:"UConn",         away:"Furman",          winner:"UConn"},
     // WEST — San Diego CA
-    {home:"Arizona",       away:"LIU",             winner:null},
-    {home:"Villanova",     away:"Utah State",      winner:null},
-    {home:"Miami FL",      away:"Missouri",        winner:null},
-    {home:"Purdue",        away:"Queens",          winner:null},
+    {home:"Arizona",       away:"LIU",             winner:"Arizona"},
+    {home:"Villanova",     away:"Utah State",      winner:"Utah State"},
+    {home:"Miami FL",      away:"Missouri",        winner:"Miami FL"},
+    {home:"Purdue",        away:"Queens",          winner:"Purdue"},
     // SOUTH — Tampa FL
-    {home:"Florida",       away:"Prairie View",    winner:null},
-    {home:"Clemson",       away:"Iowa",            winner:null},
+    {home:"Florida",       away:"Prairie View",    winner:"Florida"},
+    {home:"Clemson",       away:"Iowa",            winner:"Clemson"},
     // MIDWEST — St Louis MO & Philadelphia PA
-    {home:"Texas Tech",    away:"Akron",           winner:null},
-    {home:"Alabama",       away:"Hofstra",         winner:null},
-    {home:"Tennessee",     away:"Miami OH",        winner:null},
-    {home:"Virginia",      away:"Wright State",    winner:null},
-    {home:"Kentucky",      away:"Santa Clara",     winner:null},
-    {home:"Iowa State",    away:"Tennessee State", winner:null},
+    {home:"Texas Tech",    away:"Akron",           winner:"Texas Tech"},
+    {home:"Alabama",       away:"Hofstra",         winner:"Alabama"},
+    {home:"Tennessee",     away:"Miami OH",        winner:"Tennessee"},
+    {home:"Virginia",      away:"Wright State",    winner:"Virginia"},
+    {home:"Kentucky",      away:"Santa Clara",     winner:"Kentucky"},
+    {home:"Iowa State",    away:"Tennessee State", winner:"Iowa State"},
   ]},
 
   3: { label:"R3 — Sat Mar 21 (Round of 32)", games:[
@@ -588,10 +588,18 @@ const TOURNAMENT = {
     {home:"Nebraska",    away:"Vanderbilt",  winner:null},
   ]},
   4: { label:"R4 — Sun Mar 22 (Round of 32)", games:[
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    // Tampa
+    {home:"Florida",    away:"Clemson",    winner:null},
+    // Philadelphia
+    {home:"St. John's", away:"Kansas",     winner:null},
+    {home:"UCLA",       away:"UConn",      winner:null},
+    // San Diego
+    {home:"Arizona",    away:"Utah State", winner:null},
+    {home:"Miami FL",   away:"Purdue",     winner:null},
+    // St Louis
+    {home:"Texas Tech", away:"Alabama",    winner:null},
+    {home:"Tennessee",  away:"Virginia",   winner:null},
+    {home:"Kentucky",   away:"Iowa State", winner:null},
   ]},
   5: { label:"R5 — Thu Mar 26 (Sweet 16)", games:[
     {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
@@ -1419,7 +1427,7 @@ function renderAdmin() {
           ? (p.eliminatedInRound > 4
             ? `<span style="font-size:0.72rem; color:var(--red); font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">R${p.eliminatedInRound} — cannot restore</span>`
             : `<button class="btn btn-small btn-green" onclick="adminRestorePlayer(${p.id})">Restore (elim R${p.eliminatedInRound||'?'})</button>`)
-          : (p.restoredAfterRound != null ? `<span style="font-size:0.72rem; color:#a78bfa; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">🔄 Re-entry penalty active</span>` : '')}
+          : (p.restoredAfterRound != null ? `<button class="btn btn-small btn-purple" onclick="adminClearPenalty(${p.id})">🔄 Clear Penalty</button>` : '')}
         <button class="btn btn-small btn-danger" onclick="adminRemovePlayer(${p.id})">Remove</button>
       </div>
     </div>`;
@@ -1487,6 +1495,17 @@ window.adminRestorePlayer = function adminRestorePlayer(id) {
 
   p.eliminated = false;
   p.restoredAfterRound = elimRound; // track so penalty picks are calculated correctly
+  saveState();
+  renderAdmin();
+  renderAll();
+}
+
+window.adminClearPenalty = function adminClearPenalty(id) {
+  const p = getPlayer(id);
+  if (!p) return;
+  delete p.restoredAfterRound;
+  delete p.eliminatedInRound;
+  p.eliminated = false;
   saveState();
   renderAdmin();
   renderAll();
