@@ -455,6 +455,28 @@
       <button class="btn btn-purple" onclick="adminSubmitPicks()">Save Override</button>
     </div>
   </div>
+
+  <!-- Results Entry Tool -->
+  <div class="card" style="border-color:rgba(124,58,237,0.3); margin-top:18px;">
+    <div class="card-title" style="color:#a78bfa;">🏀 Enter Round Results</div>
+    <div class="alert alert-purple" style="margin-bottom:14px;">Enter winners after each round finishes. This automatically updates player picks and populates next round dropdowns.</div>
+    <div class="form-group" style="margin-bottom:12px; max-width:280px;">
+      <label>Round</label>
+      <select id="results-round-select" onchange="renderResultsEntry()">
+        <option value="3">R3 — Sat Mar 21</option>
+        <option value="4">R4 — Sun Mar 22</option>
+        <option value="5">R5 — Thu Mar 26</option>
+        <option value="6">R6 — Fri Mar 27</option>
+        <option value="7">R7 — Sat Mar 28</option>
+        <option value="8">R8 — Sun Mar 29</option>
+        <option value="9">R9 — Sat Apr 4</option>
+        <option value="10">R10 — Mon Apr 6</option>
+      </select>
+    </div>
+    <div id="results-entry-grid" style="display:grid; gap:8px; margin-bottom:14px;"></div>
+    <button class="btn btn-purple" onclick="saveRoundResults()">💾 Save Results</button>
+    <div id="results-entry-alert" style="margin-top:10px;"></div>
+  </div>
 </div>
 
 </div><!-- /container -->
@@ -575,39 +597,47 @@ const TOURNAMENT = {
 
   3: { label:"R3 — Sat Mar 21 (Round of 32)", games:[
     // Greenville
-    {home:"Duke",        away:"VCU",         winner:null},
-    {home:"TCU",         away:"Illinois",    winner:null},
+    {home:"Duke",        away:"VCU",         winner:"Duke"},
+    {home:"TCU",         away:"Illinois",    winner:"Illinois"},
     // Buffalo
-    {home:"Michigan",    away:"Saint Louis", winner:null},
-    {home:"Michigan St", away:"Louisville",  winner:null},
+    {home:"Michigan",    away:"Saint Louis", winner:"Michigan"},
+    {home:"Michigan St", away:"Louisville",  winner:"Michigan St"},
     // Portland
-    {home:"Arkansas",    away:"High Point",  winner:null},
-    {home:"Gonzaga",     away:"Texas",       winner:null},
+    {home:"Arkansas",    away:"High Point",  winner:"Arkansas"},
+    {home:"Gonzaga",     away:"Texas",       winner:"Texas"},
     // Oklahoma City
-    {home:"Houston",     away:"Texas A&M",   winner:null},
-    {home:"Nebraska",    away:"Vanderbilt",  winner:null},
+    {home:"Houston",     away:"Texas A&M",   winner:"Houston"},
+    {home:"Nebraska",    away:"Vanderbilt",  winner:"Nebraska"},
   ]},
   4: { label:"R4 — Sun Mar 22 (Round of 32)", games:[
     // Tampa
-    {home:"Florida",    away:"Clemson",    winner:null},
+    {home:"Florida",    away:"Clemson",    winner:"Iowa"},
     // Philadelphia
-    {home:"St. John's", away:"Kansas",     winner:null},
-    {home:"UCLA",       away:"UConn",      winner:null},
+    {home:"St. John's", away:"Kansas",     winner:"St. John's"},
+    {home:"UCLA",       away:"UConn",      winner:"UConn"},
     // San Diego
-    {home:"Arizona",    away:"Utah State", winner:null},
-    {home:"Miami FL",   away:"Purdue",     winner:null},
+    {home:"Arizona",    away:"Utah State", winner:"Arizona"},
+    {home:"Miami FL",   away:"Purdue",     winner:"Purdue"},
     // St Louis
-    {home:"Texas Tech", away:"Alabama",    winner:null},
-    {home:"Tennessee",  away:"Virginia",   winner:null},
-    {home:"Kentucky",   away:"Iowa State", winner:null},
+    {home:"Texas Tech", away:"Alabama",    winner:"Texas Tech"},
+    {home:"Tennessee",  away:"Virginia",   winner:"Tennessee"},
+    {home:"Kentucky",   away:"Iowa State", winner:"Iowa State"},
   ]},
   5: { label:"R5 — Thu Mar 26 (Sweet 16)", games:[
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    // East Regional — Newark NJ
+    {home:"Duke",        away:"Illinois",   winner:null},
+    {home:"Michigan St", away:"Michigan",   winner:null},
+    // South Regional
+    {home:"Houston",     away:"Nebraska",   winner:null},
+    {home:"Iowa",        away:"Texas Tech", winner:null},
   ]},
   6: { label:"R6 — Fri Mar 27 (Sweet 16)", games:[
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
-    {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
+    // West Regional
+    {home:"Arkansas",    away:"Texas",      winner:null},
+    {home:"Arizona",     away:"Utah State", winner:null},
+    // Midwest Regional
+    {home:"St. John's",  away:"UConn",      winner:null},
+    {home:"Iowa State",  away:"Tennessee",  winner:null},
   ]},
   7: { label:"R7 — Sat Mar 28 (Elite 8)", games:[
     {home:"TBD",away:"TBD",winner:null},{home:"TBD",away:"TBD",winner:null},
@@ -1438,6 +1468,9 @@ function renderAdmin() {
   const sel = document.getElementById('admin-pick-player');
   sel.innerHTML = state.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   updateAdminPickInputs();
+
+  // Results entry tool
+  if (document.getElementById('results-round-select')) renderResultsEntry();
 }
 
 window.toggleRoundLock = function toggleRoundLock(round, lock) {
@@ -1597,6 +1630,71 @@ window.markResult = function markResult(result) {
   closeModal('resultModal');
   renderAll();
   renderAdmin();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ADMIN RESULTS ENTRY
+// ══════════════════════════════════════════════════════════════════
+window.renderResultsEntry = function renderResultsEntry() {
+  const round = parseInt(document.getElementById('results-round-select').value);
+  const grid  = document.getElementById('results-entry-grid');
+  const data  = TOURNAMENT[round];
+  if (!data) { grid.innerHTML = ''; return; }
+
+  let html = '';
+  data.games.forEach((game, i) => {
+    if (game.home === 'TBD') return;
+    const w = game.winner || '';
+    html += `<div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:5px; padding:10px 12px; flex-wrap:wrap;">
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; flex:1; min-width:160px;">${game.home} vs ${game.away}</span>
+      <select class="result-winner-select" data-idx="${i}" style="min-width:160px; flex:1;">
+        <option value="">— Pick winner —</option>
+        <option value="${game.home}" ${w===game.home?'selected':''}>${game.home}</option>
+        <option value="${game.away}" ${w===game.away?'selected':''}>${game.away}</option>
+      </select>
+    </div>`;
+  });
+  grid.innerHTML = html || '<p style="color:var(--gray); font-family:'Barlow Condensed',sans-serif;">No games scheduled for this round yet.</p>';
+}
+
+window.saveRoundResults = function saveRoundResults() {
+  const round   = parseInt(document.getElementById('results-round-select').value);
+  const alertEl = document.getElementById('results-entry-alert');
+  const selects = [...document.querySelectorAll('.result-winner-select')];
+  const data    = TOURNAMENT[round];
+  if (!data) return;
+
+  let updated = 0;
+  selects.forEach(sel => {
+    const idx    = parseInt(sel.dataset.idx);
+    const winner = sel.value;
+    if (winner && data.games[idx]) {
+      data.games[idx].winner = winner;
+      updated++;
+      // Update all pending player picks for this game
+      const loser = data.games[idx].home === winner ? data.games[idx].away : data.games[idx].home;
+      state.players.forEach(player => {
+        if (player.eliminated) return;
+        const rPicks = (player.picks || {})[round] || [];
+        let changed = false;
+        rPicks.forEach(pick => {
+          if (pick.result !== 'pending') return;
+          if (pick.team === winner) { pick.result = 'win'; changed = true; }
+          if (pick.team === loser)  { pick.result = 'loss'; changed = true; }
+        });
+        if (changed) {
+          checkElimination(player, round);
+          clearRestoredFlag(player);
+        }
+      });
+    }
+  });
+
+  saveState();
+  renderAll();
+  renderAdmin();
+  alertEl.innerHTML = `<div class="alert alert-success">✅ ${updated} result${updated!==1?'s':''} saved. Next round dropdowns now updated.</div>`;
+  setTimeout(() => alertEl.innerHTML = '', 4000);
 }
 
 // ══════════════════════════════════════════════════════════════════
