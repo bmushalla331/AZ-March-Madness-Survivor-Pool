@@ -187,6 +187,7 @@
     .pick-slot { flex-direction:column; align-items:flex-start; }
   }
   @keyframes dot-pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+  @keyframes fade-in-skip { to { opacity:1; } }
 </style>
 </head>
 <body>
@@ -493,6 +494,7 @@
   </div>
   <div style="font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;font-size:0.82rem;color:var(--gray);text-transform:uppercase;">Connecting to database...</div>
   <div id="fb-error" style="display:none;color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;letter-spacing:1px;max-width:320px;text-align:center;padding:12px 16px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);border-radius:6px;margin-top:4px;"></div>
+  <button onclick="document.getElementById('loading-overlay').style.display='none'" style="opacity:0;animation:fade-in-skip 0.4s 3s forwards;margin-top:8px;background:transparent;border:1px solid rgba(138,155,181,0.4);color:var(--gray);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;font-size:0.78rem;text-transform:uppercase;padding:6px 16px;border-radius:4px;cursor:pointer;">Taking too long? Tap to enter</button>
 </div>
 
 <!-- ══ PICKS MODAL ══ -->
@@ -542,7 +544,7 @@
   setTimeout(() => {
     const el = document.getElementById('loading-overlay');
     if (el) el.style.display = 'none';
-  }, 10000);
+  }, 5000);
 </script>
 
 <script type="module">
@@ -881,8 +883,8 @@ async function initState() {
   );
 
   try {
-    // Try to load state — 6 second timeout
-    const snap = await Promise.race([getDoc(STATE_DOC), makeTimeout(6000)]);
+    // Try to load state — 3 second timeout
+    const snap = await Promise.race([getDoc(STATE_DOC), makeTimeout(3000)]);
     if (snap.exists()) {
       state = snap.data();
       if (!state.tournamentResults) state.tournamentResults = {};
@@ -891,7 +893,7 @@ async function initState() {
     } else {
       // First ever load — seed with timeout
       try {
-        await Promise.race([setDoc(STATE_DOC, DEFAULT_STATE), makeTimeout(5000)]);
+        await Promise.race([setDoc(STATE_DOC, DEFAULT_STATE), makeTimeout(3000)]);
       } catch(e) {
         console.warn('Could not seed state:', e.message);
       }
@@ -1695,7 +1697,7 @@ window.renderResultsEntry = function renderResultsEntry() {
       </select>
     </div>`;
   });
-  grid.innerHTML = html || '<p style="color:var(--gray); font-family:'Barlow Condensed',sans-serif;">No games scheduled for this round yet.</p>';
+  grid.innerHTML = html || '<p style="color:var(--gray); font-family:\'Barlow Condensed\',sans-serif;">No games scheduled for this round yet.</p>';
 }
 
 window.saveRoundResults = function saveRoundResults() {
