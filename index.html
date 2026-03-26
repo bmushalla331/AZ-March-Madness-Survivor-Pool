@@ -683,6 +683,8 @@ function getActualResult(team, round) {
   return game.winner === team ? 'win' : 'loss';
 }
 
+const ESPN_NAME_MAP = {};
+
 function normalizeESPNName(raw) {
   return ESPN_NAME_MAP[raw] || raw;
 }
@@ -1763,7 +1765,20 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 });
 
 // ── Start app ──
-initState();
+try {
+  initState().catch(e => {
+    console.error('initState rejected:', e);
+    document.getElementById('loading-overlay').style.display = 'none';
+  });
+} catch(e) {
+  console.error('initState threw:', e);
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Global safety net — hide loading overlay after 10s no matter what
+setTimeout(() => {
+  document.getElementById('loading-overlay').style.display = 'none';
+}, 10000);
 </script>
 </body>
 </html>
