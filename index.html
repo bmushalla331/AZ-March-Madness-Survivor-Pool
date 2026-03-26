@@ -708,28 +708,19 @@ function getCurrentPoolRound() { return DATE_TO_ROUND[todayET()] || null; }
 function isTournamentDay()     { return getCurrentPoolRound() !== null; }
 
 async function fetchESPNScores() {
-  const ESPN = 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=64';
-  // Try multiple CORS proxies in order
-  const proxies = [
-    url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-  for (const makeUrl of proxies) {
-    try {
-      const res = await fetch(makeUrl(ESPN), { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) continue;
-      const text = await res.text();
-      const data = JSON.parse(text);
-      const events = data.events || [];
-      console.log(`[ESPN] Got ${events.length} events`);
-      return events;
-    } catch(e) {
-      console.warn('[ESPN] proxy failed, trying next...', e.message);
-    }
+  // Use our Firebase Cloud Function as proxy — no CORS issues
+  const PROXY = 'https://us-central1-az-survivor-pool.cloudfunctions.net/espnScoreboard';
+  try {
+    const res = await fetch(PROXY, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const events = data.events || [];
+    console.log(`[ESPN] Got ${events.length} events via Cloud Function`);
+    return events;
+  } catch(e) {
+    console.warn('[ESPN] Cloud Function fetch failed:', e.message);
+    return [];
   }
-  console.error('[ESPN] All proxies failed');
-  return [];
 }
 
 async function processESPNScores(events) {
