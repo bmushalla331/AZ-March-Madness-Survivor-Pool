@@ -537,6 +537,14 @@
   </div>
 </div>
 
+<!-- Safety net runs immediately, outside the module, so Firebase CDN delays can't block it -->
+<script>
+  setTimeout(() => {
+    const el = document.getElementById('loading-overlay');
+    if (el) el.style.display = 'none';
+  }, 10000);
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot }
@@ -1775,10 +1783,7 @@ try {
   document.getElementById('loading-overlay').style.display = 'none';
 }
 
-// Global safety net — hide loading overlay after 10s no matter what
-setTimeout(() => {
-  document.getElementById('loading-overlay').style.display = 'none';
-}, 10000);
+// (Safety net setTimeout is in a plain <script> tag above, so it fires even if Firebase CDN hangs)
 </script>
 </body>
 </html>
