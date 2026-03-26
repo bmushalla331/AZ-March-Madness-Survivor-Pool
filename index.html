@@ -542,7 +542,7 @@
   setTimeout(() => {
     const el = document.getElementById('loading-overlay');
     if (el) el.style.display = 'none';
-  }, 10000);
+  }, 5000);
 </script>
 
 <script type="module">
@@ -881,8 +881,8 @@ async function initState() {
   );
 
   try {
-    // Try to load state — 6 second timeout
-    const snap = await Promise.race([getDoc(STATE_DOC), makeTimeout(6000)]);
+    // Try to load state — 3 second timeout
+    const snap = await Promise.race([getDoc(STATE_DOC), makeTimeout(3000)]);
     if (snap.exists()) {
       state = snap.data();
       if (!state.tournamentResults) state.tournamentResults = {};
@@ -891,7 +891,7 @@ async function initState() {
     } else {
       // First ever load — seed with timeout
       try {
-        await Promise.race([setDoc(STATE_DOC, DEFAULT_STATE), makeTimeout(5000)]);
+        await Promise.race([setDoc(STATE_DOC, DEFAULT_STATE), makeTimeout(3000)]);
       } catch(e) {
         console.warn('Could not seed state:', e.message);
       }
