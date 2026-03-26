@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head><title>Firebase Test</title></head>
+<body style="font-family:monospace; padding:20px; background:#111; color:#0f0;">
+<h2>Firebase Connection Test</h2>
+<div id="log"></div>
+<script type="module">
+const log = (msg, color) => {
+  const d = document.getElementById('log');
+  d.innerHTML += `<div style="color:${color||'#0f0'};margin:4px 0;">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+  console.log(msg);
+};
+
+log('Script started');
+
+try {
+  log('Importing Firebase...');
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+  const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+  log('Firebase imported OK', '#0f0');
+
+  const app = initializeApp({
+    apiKey: "AIzaSyDoNpDL8_3GQaElCqqu96nLWzWwFnyQMcI",
+    authDomain: "az-survivor-pool.firebaseapp.com",
+    projectId: "az-survivor-pool",
+    storageBucket: "az-survivor-pool.firebasestorage.app",
+    messagingSenderId: "658267574579",
+    appId: "1:658267574579:web:7dcaca308ab785096b6e46"
+  });
+  log('App initialized OK', '#0f0');
+
+  const db = getFirestore(app);
+  log('Firestore instance created', '#0f0');
+
+  log('Attempting getDoc on pool/state...', '#ff0');
+
+  const start = Date.now();
+  const snap = await getDoc(doc(db, 'pool', 'state'));
+  const elapsed = Date.now() - start;
+
+  if (snap.exists()) {
+    const data = snap.data();
+    log(`✅ SUCCESS in ${elapsed}ms — document exists`, '#0f0');
+    log(`Players: ${(data.players||[]).length}`, '#0f0');
+    log(`Accounts: ${(data.accounts||[]).length}`, '#0f0');
+    log(`Round locks: ${JSON.stringify(data.roundLocks||{})}`, '#0f0');
+  } else {
+    log(`⚠️ Document does not exist (${elapsed}ms)`, '#ff0');
+  }
+} catch(e) {
+  log(`❌ ERROR: ${e.message}`, '#f00');
+  log(`Stack: ${e.stack}`, '#f55');
+}
+</script>
+</body>
+</html>
