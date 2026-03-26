@@ -311,7 +311,7 @@
       <option value="2">R2 — Fri Mar 20 (Round of 64)</option>
       <option value="3">R3 — Sat Mar 21 (Round of 32)</option>
       <option value="4">R4 — Sun Mar 22 (Round of 32)</option>
-      <option value="5">R5 — Thu Mar 27 (Sweet 16)</option>
+      <option value="5">R5 — Thu Mar 26 (Sweet 16)</option>
       <option value="6">R6 — Fri Mar 28 (Sweet 16)</option>
       <option value="7">R7 — Sat Mar 29 (Elite 8)</option>
       <option value="8">R8 — Sun Mar 30 (Elite 8)</option>
@@ -866,38 +866,39 @@ function applyStoredResults() {
 async function initState() {
   showLoadingOverlay(true);
 
-  // 8 second timeout — if Firebase doesn't respond, load anyway
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('timeout')), 8000)
+  const makeTimeout = (ms) => new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), ms)
   );
 
   try {
-    const snap = await Promise.race([getDoc(STATE_DOC), timeout]);
+    // Try to load state — 6 second timeout
+    const snap = await Promise.race([getDoc(STATE_DOC), makeTimeout(6000)]);
     if (snap.exists()) {
       state = snap.data();
       if (!state.tournamentResults) state.tournamentResults = {};
       applyStoredResults();
+      try { localStorage.setItem('mmSurvivor2026_fallback', JSON.stringify(state)); } catch(e) {}
     } else {
-      await setDoc(STATE_DOC, DEFAULT_STATE);
+      // First ever load — seed with timeout
+      try {
+        await Promise.race([setDoc(STATE_DOC, DEFAULT_STATE), makeTimeout(5000)]);
+      } catch(e) {
+        console.warn('Could not seed state:', e.message);
+      }
     }
   } catch(e) {
-    console.error('Firestore init error:', e.message);
-    if (e.message === 'timeout') {
-      // Firebase timed out — try loading from localStorage as fallback
-      try {
-        const local = localStorage.getItem('mmSurvivor2026_fallback');
-        if (local) state = JSON.parse(local);
-      } catch(le) {}
-      // Show warning but still let them in
-      document.getElementById('fb-error').textContent =
-        '⚠️ Database connection slow — running in offline mode. Data may not sync across devices.';
-      document.getElementById('fb-error').style.display = '';
-    } else {
-      showFbError('Could not connect to database: ' + e.message);
-      // Still let them in with default state
-    }
+    console.warn('Firebase load failed:', e.message);
+    // Load from localStorage fallback so app still works
+    try {
+      const local = localStorage.getItem('mmSurvivor2026_fallback');
+      if (local) {
+        state = JSON.parse(local);
+        applyStoredResults();
+      }
+    } catch(le) {}
   }
 
+  // Always dismiss loading overlay and show login — no matter what
   _firestoreReady = true;
   showLoadingOverlay(false);
 
@@ -908,7 +909,6 @@ async function initState() {
       state = snap.data();
       if (!state.tournamentResults) state.tournamentResults = {};
       applyStoredResults();
-      // Save fallback copy to localStorage
       try { localStorage.setItem('mmSurvivor2026_fallback', JSON.stringify(state)); } catch(e) {}
       if (currentUser) {
         if (!currentUser.playerId) {
